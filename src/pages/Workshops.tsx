@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Company } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -45,7 +45,7 @@ const Workshops: React.FC = () => {
   }, [searchTerm]);
 
   const toRad = (value: number) => (value * Math.PI) / 180;
-  const computeDistanceKm = (
+  const computeDistanceKm = useCallback((
     lat1: number,
     lon1: number,
     lat2: number,
@@ -60,7 +60,7 @@ const Workshops: React.FC = () => {
       Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
-  };
+  }, []);
 
   // Filtrar e ordenar empresas
   const filteredCompanies = useMemo(() => {
@@ -102,7 +102,7 @@ const Workshops: React.FC = () => {
     });
 
     return filtered;
-  }, [companies, searchTerm, selectedType, sortBy, userLocation]);
+  }, [companies, searchTerm, selectedType, sortBy, userLocation, computeDistanceKm]);
 
   // formatPhone definido e usado em CompanyDetails
 

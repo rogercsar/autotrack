@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Group, GroupMember, User, UserType, Vehicle } from '../types';
+import { Group, User, UserType, Vehicle } from '../types';
 import { getGroupsByUser, createGroup, updateGroup, deleteGroup as deleteGroupSvc, addMember as addMemberSvc, removeMember as removeMemberSvc } from '../services/groupService';
 import { getVehiclesByOwner } from '../services/vehicleService';
 import { getProfileById, getProfileByEmail } from '../services/profileService';
