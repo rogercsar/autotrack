@@ -47,3 +47,27 @@ export async function updateUserType(id: string, userType: UserType) {
     .eq('id', id);
   return { error };
 }
+
+export async function getProfileByEmail(email: string): Promise<User | null> {
+  const s = getSupabase();
+  const { data, error } = await s
+    .from('profiles')
+    .select('*')
+    .eq('email', email)
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  const row = data as ProfileRow;
+  const user: User = {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    userType: row.user_type as UserType,
+    avatar: row.avatar || undefined,
+    phone: row.phone || undefined,
+    emergencyContact: row.emergency_contact || undefined,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+  return user;
+}

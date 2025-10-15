@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserGroups, getUserVehicles, mockUsers } from '../data/mockData';
-import { Group, GroupMember, UserType } from '../types';
+import { Group, GroupMember, User, UserType, Vehicle } from '../types';
+import { getGroupsByUser, createGroup, updateGroup, deleteGroup as deleteGroupSvc, addMember as addMemberSvc, removeMember as removeMemberSvc } from '../services/groupService';
+import { getVehiclesByOwner } from '../services/vehicleService';
+import { getProfileById, getProfileByEmail } from '../services/profileService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -21,15 +23,36 @@ import {
 
 const Groups: React.FC = () => {
   const { user } = useAuth();
-  const [groups, setGroups] = useState<Group[]>(getUserGroups(user?.id || ''));
+  const [groups, setGroups] = useState<Group[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [profileCache, setProfileCache] = useState<Record<string, User | null>>({});
 
-  const vehicles = getUserVehicles(user?.id || '');
+  useEffect(() => {
+    const load = async () => {
+      if (!user?.id) return;
+      const [gs, vs] = await Promise.all([
+        getGroupsByUser(user.id),
+        getVehiclesByOwner(user.id),
+      ]);
+      setGroups(gs);
+      setVehicles(vs);
+      // Carregar perfis dos membros para exibição
+      const memberIds = Array.from(new Set(gs.flatMap(g => g.members.map(m => m.userId))));
+      const cache: Record<string, User | null> = {};
+      await Promise.all(memberIds.map(async (uid) => {
+        const u = await getProfileById(uid);
+        cache[uid] = u;
+      }));
+      setProfileCache(cache);
+    };
+    load();
+  }, [user?.id]);
 
   // Filtrar grupos
   const filteredGroups = useMemo(() => {
@@ -65,58 +88,48 @@ const Groups: React.FC = () => {
     }).format(new Date(date));
   };
 
-  const handleAddGroup = (groupData: Partial<Group>) => {
+  const handleAddGroup = async (groupData: Partial<Group>) => {
     if (groups.length >= limits.maxGroups) {
       alert(`Você atingiu o limite de ${limits.maxGroups} grupos para seu plano.`);
       return;
     }
-
-    const newGroup: Group = {
-      id: Date.now().toString(),
+    if (!user?.id) return;
+    const { group } = await createGroup(user.id, {
       name: groupData.name || '',
       description: groupData.description,
-      ownerId: user?.id || '',
-      members: [{
-        id: Date.now().toString(),
-        userId: user?.id || '',
-        groupId: '',
-        role: 'owner',
-        joinedAt: new Date()
-      }],
       vehicleIds: groupData.vehicleIds || [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    // Atualizar o groupId do membro owner
-    newGroup.members[0].groupId = newGroup.id;
-
-    setGroups([...groups, newGroup]);
-    setIsAddModalOpen(false);
-  };
-
-  const handleEditGroup = (groupData: Partial<Group>) => {
-    if (!editingGroup) return;
-
-    const updatedGroups = groups.map(g => 
-      g.id === editingGroup.id 
-        ? { ...g, ...groupData, updatedAt: new Date() }
-        : g
-    );
-
-    setGroups(updatedGroups);
-    setIsEditModalOpen(false);
-    setEditingGroup(null);
-  };
-
-  const handleDeleteGroup = (groupId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este grupo?')) {
-      setGroups(groups.filter(g => g.id !== groupId));
+    });
+    if (group) {
+      setGroups([group, ...groups]);
+      setIsAddModalOpen(false);
     }
   };
 
-  const handleAddMember = (groupId: string, userEmail: string) => {
-    const foundUser = mockUsers.find(u => u.email === userEmail);
+  const handleEditGroup = async (groupData: Partial<Group>) => {
+    if (!editingGroup) return;
+    const { group } = await updateGroup(editingGroup.id, {
+      name: groupData.name,
+      description: groupData.description,
+      vehicleIds: groupData.vehicleIds,
+    });
+    if (group) {
+      setGroups(groups.map(g => (g.id === group.id ? group : g)));
+      setIsEditModalOpen(false);
+      setEditingGroup(null);
+    }
+  };
+
+  const handleDeleteGroup = async (groupId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este grupo?')) {
+      const { error } = await deleteGroupSvc(groupId);
+      if (!error) {
+        setGroups(groups.filter(g => g.id !== groupId));
+      }
+    }
+  };
+
+  const handleAddMember = async (groupId: string, userEmail: string) => {
+    const foundUser = await getProfileByEmail(userEmail);
     if (!foundUser) {
       alert('Usuário não encontrado com este email.');
       return;
@@ -134,38 +147,31 @@ const Groups: React.FC = () => {
       alert('Este usuário já é membro do grupo.');
       return;
     }
-
-    const newMember: GroupMember = {
-      id: Date.now().toString(),
-      userId: foundUser.id,
-      groupId: groupId,
-      role: 'member',
-      joinedAt: new Date()
-    };
-
-    const updatedGroups = groups.map(g => 
-      g.id === groupId 
-        ? { ...g, members: [...g.members, newMember], updatedAt: new Date() }
-        : g
-    );
-
-    setGroups(updatedGroups);
-    setIsMemberModalOpen(false);
+    const { member } = await addMemberSvc(groupId, foundUser.id, 'member');
+    if (member) {
+      setGroups(groups.map(g => (
+        g.id === groupId ? { ...g, members: [...g.members, member], updatedAt: new Date() } : g
+      )));
+      setProfileCache(prev => ({ ...prev, [foundUser.id]: foundUser }));
+      setIsMemberModalOpen(false);
+    }
   };
 
-  const handleRemoveMember = (groupId: string, memberId: string) => {
+  const handleRemoveMember = async (groupId: string, memberId: string) => {
     if (window.confirm('Tem certeza que deseja remover este membro?')) {
-      const updatedGroups = groups.map(g => 
-        g.id === groupId 
-          ? { 
-              ...g, 
-              members: g.members.filter(m => m.id !== memberId),
-              updatedAt: new Date()
-            }
-          : g
-      );
-
-      setGroups(updatedGroups);
+      const { error } = await removeMemberSvc(memberId);
+      if (!error) {
+        const updatedGroups = groups.map(g => 
+          g.id === groupId 
+            ? { 
+                ...g, 
+                members: g.members.filter(m => m.id !== memberId),
+                updatedAt: new Date()
+              }
+            : g
+        );
+        setGroups(updatedGroups);
+      }
     }
   };
 
@@ -313,7 +319,7 @@ const Groups: React.FC = () => {
                     <h4 className="text-sm font-medium text-gray-700">Membros</h4>
                     <div className="space-y-1">
                       {group.members.slice(0, 3).map((member) => {
-                        const memberUser = mockUsers.find(u => u.id === member.userId);
+                        const memberUser = profileCache[member.userId];
                         return (
                           <div key={member.id} className="flex items-center space-x-2">
                             <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">

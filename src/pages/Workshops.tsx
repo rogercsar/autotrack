@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { mockCompanies } from '../data/mockData';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Company } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
+import { getCompanies, searchCompanies } from '../services/companyService';
 import { 
   MapPin, 
   Search, 
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 const Workshops: React.FC = () => {
-  const [companies] = useState<Company[]>(mockCompanies);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
@@ -31,6 +31,36 @@ const Workshops: React.FC = () => {
   const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'name'>('distance');
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+
+  // Carregar empresas do Supabase (busca ou lista)
+  useEffect(() => {
+    let isMounted = true;
+    const load = async () => {
+      const term = searchTerm.trim();
+      const list = term ? await searchCompanies(term) : await getCompanies();
+      if (isMounted) setCompanies(list);
+    };
+    load();
+    return () => { isMounted = false; };
+  }, [searchTerm]);
+
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const computeDistanceKm = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ) => {
+    const R = 6371; // km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
   // Filtrar e ordenar empresas
   const filteredCompanies = useMemo(() => {
@@ -51,13 +81,28 @@ const Workshops: React.FC = () => {
           return a.name.localeCompare(b.name);
         case 'distance':
         default:
-          // Simular distância baseada na localização
-          return 0;
+          if (!userLocation) {
+            // Sem localização, ordenar por avaliação
+            return b.rating - a.rating;
+          }
+          const da = computeDistanceKm(
+            userLocation.latitude,
+            userLocation.longitude,
+            a.address.latitude,
+            a.address.longitude
+          );
+          const db = computeDistanceKm(
+            userLocation.latitude,
+            userLocation.longitude,
+            b.address.latitude,
+            b.address.longitude
+          );
+          return da - db;
       }
     });
 
     return filtered;
-  }, [companies, searchTerm, selectedType, sortBy]);
+  }, [companies, searchTerm, selectedType, sortBy, userLocation]);
 
   // formatPhone definido e usado em CompanyDetails
 

@@ -1,11 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserVehicles, mockUsers } from '../data/mockData';
+// import { getUserVehicles, mockUsers } from '../data/mockData';
 import { Vehicle, VehicleTransfer, User } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
+import { getVehiclesByOwner } from '../services/vehicleService';
+import { 
+  getTransfersInvolved, 
+  createTransfer, 
+  acceptTransfer, 
+  rejectTransfer, 
+  deleteTransfer 
+} from '../services/transferService';
+import { getProfileById, getProfileByEmail } from '../services/profileService';
 import { 
   Car, 
   ArrowRight, 
@@ -22,29 +31,9 @@ import {
 
 const VehicleTransferPage: React.FC = () => {
   const { user } = useAuth();
-  const [vehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''));
-  const [transfers, setTransfers] = useState<VehicleTransfer[]>([
-    {
-      id: '1',
-      vehicleId: '1',
-      fromUserId: '1',
-      toUserId: '2',
-      status: 'pending',
-      message: 'Transferindo meu Honda Civic para você',
-      createdAt: new Date('2023-12-01'),
-      completedAt: undefined
-    },
-    {
-      id: '2',
-      vehicleId: '2',
-      fromUserId: '2',
-      toUserId: '1',
-      status: 'accepted',
-      message: 'Aceito a transferência do Toyota Corolla',
-      createdAt: new Date('2023-11-15'),
-      completedAt: new Date('2023-11-16')
-    }
-  ]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [transfers, setTransfers] = useState<VehicleTransfer[]>([]);
+  const [profilesCache, setProfilesCache] = useState<Record<string, User>>({});
   
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -52,6 +41,39 @@ const VehicleTransferPage: React.FC = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
+
+  // Carregar veículos do usuário e transferências onde está envolvido
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      if (user?.id) {
+        const vs = await getVehiclesByOwner(user.id);
+        if (active) setVehicles(vs);
+      }
+      const ts = await getTransfersInvolved();
+      if (active) setTransfers(ts);
+    };
+    load();
+    return () => { active = false; };
+  }, [user?.id]);
+
+  // Carregar perfis dos usuários envolvidos nas transferências
+  useEffect(() => {
+    let active = true;
+    const fillProfiles = async () => {
+      const ids = Array.from(new Set(transfers.flatMap(t => [t.fromUserId, t.toUserId])));
+      const missing = ids.filter(id => !profilesCache[id]);
+      if (missing.length === 0) return;
+      const entries: Record<string, User> = {};
+      for (const id of missing) {
+        const profile = await getProfileById(id);
+        if (profile) entries[id] = profile;
+      }
+      if (active && Object.keys(entries).length) setProfilesCache(prev => ({ ...prev, ...entries }));
+    };
+    fillProfiles();
+    return () => { active = false; };
+  }, [transfers, profilesCache]);
 
   // Filtrar transferências
   const filteredTransfers = useMemo(() => {
@@ -105,43 +127,49 @@ const VehicleTransferPage: React.FC = () => {
     }
   };
 
-  const handleTransferVehicle = (transferData: Partial<VehicleTransfer>) => {
-    const newTransfer: VehicleTransfer = {
-      id: Date.now().toString(),
-      vehicleId: transferData.vehicleId || '',
-      fromUserId: user?.id || '',
-      toUserId: transferData.toUserId || '',
-      status: 'pending',
-      message: transferData.message,
-      createdAt: new Date(),
-      completedAt: undefined
-    };
-
-    setTransfers([...transfers, newTransfer]);
+  const handleTransferVehicle = async (transferData: { vehicleId: string; toUserEmail: string; message?: string }) => {
+    if (!transferData.toUserEmail) return;
+    const profile = await getProfileByEmail(transferData.toUserEmail);
+    if (!profile) {
+      alert('Usuário não encontrado pelo email informado.');
+      return;
+    }
+    const { transfer, error } = await createTransfer(transferData.vehicleId, profile.id, transferData.message);
+    if (error || !transfer) {
+      alert('Não foi possível criar a transferência.');
+      return;
+    }
+    setTransfers([transfer, ...transfers]);
+    setProfilesCache(prev => ({ ...prev, [profile.id]: profile }));
     setIsTransferModalOpen(false);
     setSelectedVehicle(null);
   };
 
-  const handleAcceptTransfer = (transferId: string) => {
-    const updatedTransfers = transfers.map(t => 
-      t.id === transferId 
-        ? { ...t, status: 'accepted' as const, completedAt: new Date() }
-        : t
-    );
-    setTransfers(updatedTransfers);
+  const handleAcceptTransfer = async (transferId: string) => {
+    const { transfer, error } = await acceptTransfer(transferId);
+    if (error || !transfer) {
+      alert('Erro ao aceitar transferência.');
+      return;
+    }
+    setTransfers(prev => prev.map(t => (t.id === transferId ? transfer : t)));
   };
 
-  const handleRejectTransfer = (transferId: string) => {
-    const updatedTransfers = transfers.map(t => 
-      t.id === transferId 
-        ? { ...t, status: 'rejected' as const, completedAt: new Date() }
-        : t
-    );
-    setTransfers(updatedTransfers);
+  const handleRejectTransfer = async (transferId: string) => {
+    const { transfer, error } = await rejectTransfer(transferId);
+    if (error || !transfer) {
+      alert('Erro ao rejeitar transferência.');
+      return;
+    }
+    setTransfers(prev => prev.map(t => (t.id === transferId ? transfer : t)));
   };
 
-  const handleDeleteTransfer = (transferId: string) => {
+  const handleDeleteTransfer = async (transferId: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta transferência?')) {
+      const { error } = await deleteTransfer(transferId);
+      if (error) {
+        alert('Erro ao excluir transferência.');
+        return;
+      }
       setTransfers(transfers.filter(t => t.id !== transferId));
     }
   };
@@ -273,8 +301,8 @@ const VehicleTransferPage: React.FC = () => {
         ) : (
           filteredTransfers.map((transfer) => {
             const vehicle = vehicles.find(v => v.id === transfer.vehicleId);
-            const fromUser = mockUsers.find(u => u.id === transfer.fromUserId);
-            const toUser = mockUsers.find(u => u.id === transfer.toUserId);
+            const fromUser = profilesCache[transfer.fromUserId];
+            const toUser = profilesCache[transfer.toUserId];
             const isFromMe = transfer.fromUserId === user?.id;
 
             return (
@@ -402,8 +430,8 @@ const VehicleTransferPage: React.FC = () => {
           <TransferDetails
             transfer={selectedTransfer}
             vehicle={vehicles.find(v => v.id === selectedTransfer.vehicleId)}
-            fromUser={mockUsers.find(u => u.id === selectedTransfer.fromUserId)}
-            toUser={mockUsers.find(u => u.id === selectedTransfer.toUserId)}
+            fromUser={profilesCache[selectedTransfer.fromUserId]}
+            toUser={profilesCache[selectedTransfer.toUserId]}
             onAccept={() => {
               handleAcceptTransfer(selectedTransfer.id);
               setIsDetailsModalOpen(false);
@@ -428,13 +456,13 @@ const VehicleTransferPage: React.FC = () => {
 // Componente do formulário de transferência
 interface TransferFormProps {
   vehicle: Vehicle;
-  onSubmit: (data: Partial<VehicleTransfer>) => void;
+  onSubmit: (data: { vehicleId: string; toUserEmail: string; message?: string }) => void;
   onCancel: () => void;
 }
 
 const TransferForm: React.FC<TransferFormProps> = ({ vehicle, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
-    toUserId: '',
+    toUserEmail: '',
     message: ''
   });
 
@@ -442,7 +470,7 @@ const TransferForm: React.FC<TransferFormProps> = ({ vehicle, onSubmit, onCancel
     e.preventDefault();
     onSubmit({
       vehicleId: vehicle.id,
-      toUserId: formData.toUserId,
+      toUserEmail: formData.toUserEmail,
       message: formData.message
     });
   };
@@ -481,9 +509,9 @@ const TransferForm: React.FC<TransferFormProps> = ({ vehicle, onSubmit, onCancel
 
       <Input
         label="Email do novo proprietário"
-        name="toUserId"
+        name="toUserEmail"
         type="email"
-        value={formData.toUserId}
+        value={formData.toUserEmail}
         onChange={handleChange}
         placeholder="novo.proprietario@email.com"
         required
