@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserVehicles, mockExpenses } from '../data/mockData';
+import { getVehiclesByOwner } from '../services/vehicleService';
+import { getExpensesByVehicleIds } from '../services/expenseService';
 import { Expense, ExpenseType } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -22,7 +23,10 @@ import {
 
 const Expenses: React.FC = () => {
   const { user } = useAuth();
-  const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -32,7 +36,29 @@ const Expenses: React.FC = () => {
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'type'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const vehicles = getUserVehicles(user?.id || '');
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!user?.id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const v = await getVehiclesByOwner(user.id);
+        if (!active) return;
+        setVehicles(v);
+        const vehicleIds = v.map((x) => x.id);
+        const exps = vehicleIds.length ? await getExpensesByVehicleIds(vehicleIds) : [];
+        if (!active) return;
+        setExpenses(exps);
+      } catch (e: any) {
+        setError(e?.message || 'Falha ao carregar despesas');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [user?.id]);
 
   // Filtrar e ordenar despesas
   const filteredExpenses = useMemo(() => {
@@ -198,7 +224,7 @@ const Expenses: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(stats.total)}
+                {loading ? '...' : formatCurrency(stats.total)}
               </p>
             </div>
           </div>
@@ -212,7 +238,7 @@ const Expenses: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Este Mês</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(stats.thisMonth)}
+                {loading ? '...' : formatCurrency(stats.thisMonth)}
               </p>
             </div>
           </div>
@@ -226,7 +252,7 @@ const Expenses: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Registros</p>
               <p className="text-2xl font-bold text-gray-900">
-                {filteredExpenses.length}
+                {loading ? '...' : filteredExpenses.length}
               </p>
             </div>
           </div>
@@ -293,7 +319,14 @@ const Expenses: React.FC = () => {
       </Card>
 
       {/* Lista de despesas */}
-      {filteredExpenses.length === 0 ? (
+      {loading ? (
+        <Card>
+          <div className="text-center py-12">
+            <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Carregando...</p>
+          </div>
+        </Card>
+      ) : filteredExpenses.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -314,6 +347,11 @@ const Expenses: React.FC = () => {
         </Card>
       ) : (
         <div className="space-y-4">
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+              {error}
+            </div>
+          )}
           {filteredExpenses.map((expense) => {
             const vehicle = vehicles.find(v => v.id === expense.vehicleId);
             return (

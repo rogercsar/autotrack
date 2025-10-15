@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getDashboardStats, getUserVehicles, mockExpenses } from '../data/mockData';
+import { getVehiclesByOwner } from '../services/vehicleService';
+import { getExpensesByVehicleIds } from '../services/expenseService';
+import { countActiveAlertsByUser } from '../services/alertsService';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { 
@@ -20,12 +22,55 @@ const Dashboard: React.FC = () => {
   
   if (!user) return null;
 
-  const stats = getDashboardStats(user.id);
-  const vehicles = getUserVehicles(user.id);
-  const recentExpenses = mockExpenses
-    .filter(expense => vehicles.some(v => v.id === expense.vehicleId))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [alertsCount, setAlertsCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!user) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const v = await getVehiclesByOwner(user.id);
+        if (!active) return;
+        setVehicles(v);
+        const vehicleIds = v.map((x) => x.id);
+        const exps = vehicleIds.length ? await getExpensesByVehicleIds(vehicleIds) : [];
+        if (!active) return;
+        setExpenses(exps);
+        const ac = await countActiveAlertsByUser(user.id);
+        if (!active) return;
+        setAlertsCount(ac);
+      } catch (e: any) {
+        setError(e?.message || 'Falha ao carregar dados');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [user?.id]);
+
+  const stats = useMemo(() => {
+    const totalVehicles = vehicles.length;
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const now = new Date();
+    const monthlyExpenses = expenses
+      .filter((e) => e.date.getMonth() === now.getMonth() && e.date.getFullYear() === now.getFullYear())
+      .reduce((sum, e) => sum + e.amount, 0);
+    return { totalVehicles, totalExpenses, monthlyExpenses, recentAlerts: alertsCount };
+  }, [vehicles, expenses, alertsCount]);
+
+  const recentExpenses = useMemo(() => {
+    return expenses
+      .slice()
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [expenses]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -101,7 +146,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Veículos</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalVehicles}</p>
+              <p className="text-2xl font-bold text-gray-900">{loading ? '...' : stats.totalVehicles}</p>
             </div>
           </div>
         </Card>
@@ -114,7 +159,7 @@ const Dashboard: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Gastos Totais</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(stats.totalExpenses)}
+                {loading ? '...' : formatCurrency(stats.totalExpenses)}
               </p>
             </div>
           </div>
@@ -128,7 +173,7 @@ const Dashboard: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Este Mês</p>
               <p className="text-2xl font-bold text-gray-900">
-                {formatCurrency(stats.monthlyExpenses)}
+                {loading ? '...' : formatCurrency(stats.monthlyExpenses)}
               </p>
             </div>
           </div>
@@ -141,7 +186,7 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Alertas</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.recentAlerts}</p>
+              <p className="text-2xl font-bold text-gray-900">{loading ? '...' : stats.recentAlerts}</p>
             </div>
           </div>
         </Card>
@@ -160,7 +205,12 @@ const Dashboard: React.FC = () => {
             </Link>
           </div>
           
-          {vehicles.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <Car className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Carregando...</p>
+            </div>
+          ) : vehicles.length === 0 ? (
             <div className="text-center py-8">
               <Car className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">Nenhum veículo cadastrado</p>
@@ -211,7 +261,12 @@ const Dashboard: React.FC = () => {
             </Link>
           </div>
           
-          {recentExpenses.length === 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">Carregando...</p>
+            </div>
+          ) : recentExpenses.length === 0 ? (
             <div className="text-center py-8">
               <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">Nenhuma despesa registrada</p>

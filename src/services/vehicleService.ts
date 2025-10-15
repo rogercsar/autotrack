@@ -90,3 +90,14 @@ export async function deleteVehicle(id: string) {
     .eq('id', id);
   return { error };
 }
+
+export async function getVehicleById(id: string): Promise<Vehicle | null> {
+  const s = getSupabase();
+  const { data, error } = await s
+    .from('vehicles')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapVehicle(data as VehicleRow);
+}

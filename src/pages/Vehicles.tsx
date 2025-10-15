@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserVehicles } from '../data/mockData';
+import { getVehiclesByOwner } from '../services/vehicleService';
 import { Vehicle } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -94,12 +94,34 @@ const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose })
 
 const Vehicles: React.FC = () => {
   const { user } = useAuth();
-  const [vehicles, setVehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''));
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [sharingVehicle, setSharingVehicle] = useState<Vehicle | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!user?.id) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const v = await getVehiclesByOwner(user.id);
+        if (!active) return;
+        setVehicles(v);
+      } catch (e: any) {
+        setError(e?.message || 'Falha ao carregar veículos');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [user?.id]);
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -175,7 +197,14 @@ const Vehicles: React.FC = () => {
       </div>
 
       {/* Lista de veículos */}
-      {vehicles.length === 0 ? (
+      {loading ? (
+        <Card>
+          <div className="text-center py-12">
+            <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Carregando...</p>
+          </div>
+        </Card>
+      ) : vehicles.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -193,6 +222,13 @@ const Vehicles: React.FC = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {error && (
+            <div className="md:col-span-2 lg:col-span-3">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+                {error}
+              </div>
+            </div>
+          )}
           {vehicles.map((vehicle) => (
             <Card key={vehicle.id} className="overflow-hidden">
               {/* Foto do veículo */}

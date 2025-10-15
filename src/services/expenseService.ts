@@ -87,3 +87,15 @@ export async function deleteExpense(id: string) {
     .eq('id', id);
   return { error };
 }
+
+export async function getExpensesByVehicleIds(vehicleIds: string[]): Promise<Expense[]> {
+  if (!vehicleIds.length) return [];
+  const s = getSupabase();
+  const { data, error } = await s
+    .from('expenses')
+    .select('*')
+    .in('vehicle_id', vehicleIds)
+    .order('date', { ascending: false });
+  if (error || !data) return [];
+  return (data as ExpenseRow[]).map(mapExpense);
+}
