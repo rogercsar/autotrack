@@ -1,0 +1,14 @@
+# Node/CRA
+node_modules/
+build/
+.cache/
+coverage/
+*.log
+.DS_Store
+
+# Env files
+.env*
+!.env.local.example
+
+# Editor
+.vscode/

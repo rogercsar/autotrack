@@ -1,0 +1,456 @@
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserVehicles } from '../data/mockData';
+import { Vehicle } from '../types';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Modal from '../components/ui/Modal';
+import Input from '../components/ui/Input';
+import ImageUpload from '../components/ui/ImageUpload';
+import { 
+  Car, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  Share2,
+  Calendar,
+  DollarSign,
+  Users
+} from 'lucide-react';
+
+// Componente de compartilhamento
+interface VehicleShareFormProps {
+  vehicle: Vehicle | null;
+  onClose: () => void;
+}
+
+const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose }) => {
+  const [shareUrl, setShareUrl] = useState('');
+
+  const generateShareUrl = () => {
+    if (!vehicle) return '';
+    const baseUrl = window.location.origin;
+    const url = `${baseUrl}/public/vehicle/${vehicle.id}`;
+    setShareUrl(url);
+    return url;
+  };
+
+  const copyToClipboard = async () => {
+    if (shareUrl) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Link copiado para a área de transferência!');
+      } catch (err) {
+        console.error('Erro ao copiar link:', err);
+        alert('Erro ao copiar link. Tente novamente.');
+      }
+    }
+  };
+
+  React.useEffect(() => {
+    if (vehicle) {
+      generateShareUrl();
+    }
+  }, [vehicle]);
+
+  if (!vehicle) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-gray-600">Nenhum veículo selecionado</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h3 className="font-medium text-gray-900 mb-2">Link de compartilhamento</h3>
+        <div className="flex space-x-2">
+          <Input
+            value={shareUrl}
+            readOnly
+            className="flex-1"
+            placeholder="Gerando link..."
+          />
+          <Button onClick={copyToClipboard} disabled={!shareUrl}>
+            Copiar
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Este link permite visualizar as informações do veículo publicamente
+        </p>
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <Button variant="outline" onClick={onClose}>
+          Fechar
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const Vehicles: React.FC = () => {
+  const { user } = useAuth();
+  const [vehicles, setVehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''));
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [sharingVehicle, setSharingVehicle] = useState<Vehicle | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(new Date(date));
+  };
+
+  const handleAddVehicle = (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
+    const newVehicle: Vehicle = {
+      id: Date.now().toString(),
+      ownerId: user?.id || '',
+      plate: vehicleData.plate || '',
+      model: vehicleData.model || '',
+      year: vehicleData.year || new Date().getFullYear(),
+      color: vehicleData.color || '',
+      renavam: vehicleData.renavam || '',
+      photo: vehicleData.photo,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    setVehicles([...vehicles, newVehicle]);
+    setIsAddModalOpen(false);
+  };
+
+  const handleEditVehicle = (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
+    if (!editingVehicle) return;
+
+    const updatedVehicles = vehicles.map(v => 
+      v.id === editingVehicle.id 
+        ? { ...v, ...vehicleData, updatedAt: new Date() }
+        : v
+    );
+
+    setVehicles(updatedVehicles);
+    setIsEditModalOpen(false);
+    setEditingVehicle(null);
+  };
+
+  const handleDeleteVehicle = (vehicleId: string) => {
+    if (window.confirm('Tem certeza que deseja excluir este veículo?')) {
+      setVehicles(vehicles.filter(v => v.id !== vehicleId));
+    }
+  };
+
+  const openEditModal = (vehicle: Vehicle) => {
+    setEditingVehicle(vehicle);
+    setIsEditModalOpen(true);
+  };
+
+  const openShareModal = (vehicle: Vehicle) => {
+    setSharingVehicle(vehicle);
+    setIsShareModalOpen(true);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Meus Veículos</h1>
+          <p className="text-gray-600 mt-1">
+            Gerencie seus veículos e acompanhe suas informações
+          </p>
+        </div>
+        <Button onClick={() => setIsAddModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Adicionar Veículo
+        </Button>
+      </div>
+
+      {/* Lista de veículos */}
+      {vehicles.length === 0 ? (
+        <Card>
+          <div className="text-center py-12">
+            <Car className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              Nenhum veículo cadastrado
+            </h3>
+            <p className="text-gray-500 mb-6">
+              Comece adicionando seu primeiro veículo para começar a gerenciar suas despesas
+            </p>
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Primeiro Veículo
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {vehicles.map((vehicle) => (
+            <Card key={vehicle.id} className="overflow-hidden">
+              {/* Foto do veículo */}
+              <div className="h-48 bg-gray-200 relative">
+                {vehicle.photo ? (
+                  <img
+                    src={vehicle.photo}
+                    alt={vehicle.model}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Car className="w-16 h-16 text-gray-400" />
+                  </div>
+                )}
+                <div className="absolute top-3 right-3">
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-white text-gray-900 shadow-sm">
+                    {vehicle.isActive ? 'Ativo' : 'Inativo'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Informações do veículo */}
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {vehicle.model}
+                </h3>
+                <p className="text-sm text-gray-600 mb-2">
+                  {vehicle.plate} • {vehicle.year} • {vehicle.color}
+                </p>
+                <p className="text-xs text-gray-500 mb-4">
+                  Cadastrado em {formatDate(vehicle.createdAt)}
+                </p>
+
+                {/* Ações */}
+                <div className="flex items-center justify-between">
+                  <div className="flex space-x-2">
+                    <Link to={`/vehicles/${vehicle.id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEditModal(vehicle)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteVehicle(vehicle.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openShareModal(vehicle)}
+                  >
+                    <Share2 className="w-4 h-4 mr-1" />
+                    Compartilhar
+                  </Button>
+                </div>
+
+                {/* Links rápidos */}
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Link
+                      to={`/vehicles/${vehicle.id}/expenses`}
+                      className="flex flex-col items-center p-2 text-xs text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    >
+                      <DollarSign className="w-4 h-4 mb-1" />
+                      Despesas
+                    </Link>
+                    <Link
+                      to={`/vehicles/${vehicle.id}/groups`}
+                      className="flex flex-col items-center p-2 text-xs text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    >
+                      <Users className="w-4 h-4 mb-1" />
+                      Grupos
+                    </Link>
+                    <Link
+                      to={`/vehicles/${vehicle.id}/calendar`}
+                      className="flex flex-col items-center p-2 text-xs text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                    >
+                      <Calendar className="w-4 h-4 mb-1" />
+                      Calendário
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Modal de adicionar veículo */}
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        title="Adicionar Veículo"
+        size="md"
+      >
+        <VehicleForm
+          onSubmit={handleAddVehicle}
+          onCancel={() => setIsAddModalOpen(false)}
+        />
+      </Modal>
+
+      {/* Modal de editar veículo */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingVehicle(null);
+        }}
+        title="Editar Veículo"
+        size="md"
+      >
+        <VehicleForm
+          vehicle={editingVehicle}
+          onSubmit={handleEditVehicle}
+          onCancel={() => {
+            setIsEditModalOpen(false);
+            setEditingVehicle(null);
+          }}
+        />
+      </Modal>
+
+      {/* Modal de compartilhar veículo */}
+      <Modal
+        isOpen={isShareModalOpen}
+        onClose={() => {
+          setIsShareModalOpen(false);
+          setSharingVehicle(null);
+        }}
+        title="Compartilhar Veículo"
+        size="md"
+      >
+        <VehicleShareForm
+          vehicle={sharingVehicle}
+          onClose={() => {
+            setIsShareModalOpen(false);
+            setSharingVehicle(null);
+          }}
+        />
+      </Modal>
+    </div>
+  );
+};
+
+// Componente do formulário de veículo
+interface VehicleFormProps {
+  vehicle?: Vehicle | null;
+  onSubmit: (data: Partial<Vehicle> & { photoFile?: File | null }) => void;
+  onCancel: () => void;
+}
+
+const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState({
+    plate: vehicle?.plate || '',
+    model: vehicle?.model || '',
+    year: vehicle?.year || new Date().getFullYear(),
+    color: vehicle?.color || '',
+    renavam: vehicle?.renavam || '',
+    photo: vehicle?.photo || ''
+  });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({ ...formData, photoFile });
+  };
+
+  const handlePhotoChange = (file: File | null, previewUrl?: string) => {
+    setPhotoFile(file);
+    if (previewUrl) {
+      setFormData(prev => ({ ...prev, photo: previewUrl }));
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'year' ? parseInt(value) || new Date().getFullYear() : value
+    }));
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Input
+          label="Placa"
+          name="plate"
+          value={formData.plate}
+          onChange={handleChange}
+          placeholder="ABC-1234"
+          required
+        />
+        <Input
+          label="Modelo"
+          name="model"
+          value={formData.model}
+          onChange={handleChange}
+          placeholder="Honda Civic"
+          required
+        />
+        <Input
+          label="Ano"
+          name="year"
+          type="number"
+          value={formData.year}
+          onChange={handleChange}
+          min="1900"
+          max={new Date().getFullYear() + 1}
+          required
+        />
+        <Input
+          label="Cor"
+          name="color"
+          value={formData.color}
+          onChange={handleChange}
+          placeholder="Prata"
+          required
+        />
+        <Input
+          label="RENAVAM"
+          name="renavam"
+          value={formData.renavam}
+          onChange={handleChange}
+          placeholder="12345678901"
+          required
+        />
+      </div>
+
+      <ImageUpload
+        label="Foto do Veículo"
+        value={formData.photo}
+        onChange={handlePhotoChange}
+        accept="image/*"
+        maxSize={5}
+        helperText="Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB"
+      />
+
+      <div className="flex justify-end space-x-3 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit">
+          {vehicle ? 'Salvar Alterações' : 'Adicionar Veículo'}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+export default Vehicles;
