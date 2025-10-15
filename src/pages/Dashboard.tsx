@@ -21,7 +21,7 @@ const Dashboard: React.FC = () => {
   const { user } = useAuth();
   
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [alertsCount, setAlertsCount] = useState(0);
@@ -51,7 +51,7 @@ const Dashboard: React.FC = () => {
     }
     load();
     return () => { active = false; };
-  }, [user?.id]);
+  }, [user]);
 
   const stats = useMemo(() => {
     const totalVehicles = vehicles.length;

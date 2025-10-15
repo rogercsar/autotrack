@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserVehicles, mockExpenses } from '../data/mockData';
 import { Vehicle, VehicleExportData, UserType } from '../types';

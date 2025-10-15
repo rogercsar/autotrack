@@ -16,10 +16,7 @@ import {
   UserMinus,
   Share2,
   Car,
-  Mail,
-  Phone,
-  Crown,
-  Shield
+  Crown
 } from 'lucide-react';
 
 const Groups: React.FC = () => {

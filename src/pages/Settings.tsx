@@ -10,7 +10,6 @@ import {
   Bell, 
   Shield, 
   Palette,
-  Globe,
   Database,
   Trash2,
   Download,

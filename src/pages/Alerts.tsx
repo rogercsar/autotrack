@@ -5,7 +5,6 @@ import { EmergencyAlert, AlertType, Vehicle } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
 import { 
   AlertTriangle, 
   Plus, 
@@ -13,9 +12,6 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Phone,
-  MessageCircle,
-  Car,
   Users,
   Navigation,
   Send

@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
 import { mockUsers } from '../data/mockData';
 import { User } from '../types';
-import Card from './ui/Card';
 import Button from './ui/Button';
 import Modal from './ui/Modal';
 import { 
@@ -11,17 +9,10 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Info, 
-  Star,
   User as UserIcon,
   Clock,
   MapPin,
-  Phone,
-  Mail,
-  MessageCircle,
-  Shield,
   Car,
-  DollarSign,
-  Calendar,
   Settings
 } from 'lucide-react';
 
@@ -46,7 +37,6 @@ interface NotificationModalProps {
 }
 
 const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread' | 'emergency'>('all');
   const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);

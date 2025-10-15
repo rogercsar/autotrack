@@ -12,19 +12,15 @@ import {
   Car, 
   ArrowLeft, 
   Edit, 
-  Trash2, 
   Share2, 
-  Download,
   DollarSign,
   Calendar,
   Users,
   MapPin,
-  AlertTriangle,
   TrendingUp,
   BarChart3,
   Plus,
-  Eye,
-  Settings
+  Eye
 } from 'lucide-react';
 
 const VehicleDetails: React.FC = () => {
@@ -541,7 +537,6 @@ interface VehicleShareFormProps {
 
 const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose }) => {
   const [shareUrl, setShareUrl] = useState('');
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
 
   const generateShareUrl = () => {
     const baseUrl = window.location.origin;

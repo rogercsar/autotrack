@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, Bell, Settings, LogOut, Menu, X, Car } from 'lucide-react';
-import Button from '../ui/Button';
 import NotificationModal from '../NotificationModal';
 
 interface HeaderProps {

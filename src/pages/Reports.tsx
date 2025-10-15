@@ -8,16 +8,12 @@ import Modal from '../components/ui/Modal';
 import { 
   BarChart3, 
   TrendingUp, 
-  TrendingDown,
   DollarSign,
   Calendar,
   Download,
   Filter,
-  RefreshCw,
   PieChart,
-  LineChart,
   FileText,
-  Eye,
   Settings
 } from 'lucide-react';
 
