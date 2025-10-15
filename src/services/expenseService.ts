@@ -104,7 +104,7 @@ export async function uploadExpenseReceipt(userId: string, file: File): Promise<
   const s = getSupabase();
   const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
   const path = `${userId}/expense-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { data, error } = await s.storage.from('receipts').upload(path, file, { upsert: true });
+  const { error } = await s.storage.from('receipts').upload(path, file, { upsert: true });
   if (error) return { url: null, error };
   const { data: pub } = s.storage.from('receipts').getPublicUrl(path);
   return { url: pub.publicUrl, error: null };

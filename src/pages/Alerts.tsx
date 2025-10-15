@@ -231,6 +231,13 @@ const Alerts: React.FC = () => {
         </Button>
       </div>
 
+      {/* Erro */}
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
       {/* Estatísticas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
