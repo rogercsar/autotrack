@@ -247,71 +247,94 @@ alter table public.vehicle_transfers enable row level security;
 
 -- Policies
 -- Profiles: usuário só vê/edita seu próprio perfil
-create policy if not exists "Profiles: read own" on public.profiles
+drop policy if exists "Profiles: read own" on public.profiles;
+create policy "Profiles: read own" on public.profiles
   for select using (auth.uid() = id);
-create policy if not exists "Profiles: update own" on public.profiles
+drop policy if exists "Profiles: update own" on public.profiles;
+create policy "Profiles: update own" on public.profiles
   for update using (auth.uid() = id);
 
 -- Vehicles: proprietário acessa seus veículos
-create policy if not exists "Vehicles: read own" on public.vehicles
+drop policy if exists "Vehicles: read own" on public.vehicles;
+create policy "Vehicles: read own" on public.vehicles
   for select using (owner_id = auth.uid());
-create policy if not exists "Vehicles: insert own" on public.vehicles
+drop policy if exists "Vehicles: insert own" on public.vehicles;
+create policy "Vehicles: insert own" on public.vehicles
   for insert with check (owner_id = auth.uid());
-create policy if not exists "Vehicles: update own" on public.vehicles
+drop policy if exists "Vehicles: update own" on public.vehicles;
+create policy "Vehicles: update own" on public.vehicles
   for update using (owner_id = auth.uid());
-create policy if not exists "Vehicles: delete own" on public.vehicles
+drop policy if exists "Vehicles: delete own" on public.vehicles;
+create policy "Vehicles: delete own" on public.vehicles
   for delete using (owner_id = auth.uid());
 
 -- Expenses: usuário acessa despesas de seus veículos
-create policy if not exists "Expenses: read own" on public.expenses
+drop policy if exists "Expenses: read own" on public.expenses;
+create policy "Expenses: read own" on public.expenses
   for select using (exists (select 1 from public.vehicles v where v.id = vehicle_id and v.owner_id = auth.uid()));
-create policy if not exists "Expenses: insert own" on public.expenses
+drop policy if exists "Expenses: insert own" on public.expenses;
+create policy "Expenses: insert own" on public.expenses
   for insert with check (exists (select 1 from public.vehicles v where v.id = vehicle_id and v.owner_id = auth.uid()));
-create policy if not exists "Expenses: update own" on public.expenses
+drop policy if exists "Expenses: update own" on public.expenses;
+create policy "Expenses: update own" on public.expenses
   for update using (exists (select 1 from public.vehicles v where v.id = vehicle_id and v.owner_id = auth.uid()));
-create policy if not exists "Expenses: delete own" on public.expenses
+drop policy if exists "Expenses: delete own" on public.expenses;
+create policy "Expenses: delete own" on public.expenses
   for delete using (exists (select 1 from public.vehicles v where v.id = vehicle_id and v.owner_id = auth.uid()));
 
 -- Groups: membros ou owner acessam
-create policy if not exists "Groups: read membership" on public.groups
+drop policy if exists "Groups: read membership" on public.groups;
+create policy "Groups: read membership" on public.groups
   for select using (exists (select 1 from public.group_members gm where gm.group_id = id and gm.user_id = auth.uid()));
-create policy if not exists "Groups: manage owner" on public.groups
+drop policy if exists "Groups: manage owner" on public.groups;
+create policy "Groups: manage owner" on public.groups
   for all using (owner_id = auth.uid()) with check (owner_id = auth.uid());
 
 -- Group members
-create policy if not exists "GroupMembers: read membership" on public.group_members
+drop policy if exists "GroupMembers: read membership" on public.group_members;
+create policy "GroupMembers: read membership" on public.group_members
   for select using (user_id = auth.uid() or exists (select 1 from public.groups g where g.id = group_id and g.owner_id = auth.uid()));
-create policy if not exists "GroupMembers: modify owner" on public.group_members
+drop policy if exists "GroupMembers: modify owner" on public.group_members;
+create policy "GroupMembers: modify owner" on public.group_members
   for all using (exists (select 1 from public.groups g where g.id = group_id and g.owner_id = auth.uid()))
   with check (exists (select 1 from public.groups g where g.id = group_id and g.owner_id = auth.uid()));
 
 -- Group vehicles
-create policy if not exists "GroupVehicles: read membership" on public.group_vehicles
+drop policy if exists "GroupVehicles: read membership" on public.group_vehicles;
+create policy "GroupVehicles: read membership" on public.group_vehicles
   for select using (exists (select 1 from public.group_members gm where gm.group_id = group_id and gm.user_id = auth.uid()));
-create policy if not exists "GroupVehicles: modify owner" on public.group_vehicles
+drop policy if exists "GroupVehicles: modify owner" on public.group_vehicles;
+create policy "GroupVehicles: modify owner" on public.group_vehicles
   for all using (exists (select 1 from public.groups g where g.id = group_id and g.owner_id = auth.uid()))
   with check (exists (select 1 from public.groups g where g.id = group_id and g.owner_id = auth.uid()));
 
 -- Companies: leitura pública (autenticados), modificação restrita (ex.: por admin/service role)
-create policy if not exists "Companies: read any" on public.companies
+drop policy if exists "Companies: read any" on public.companies;
+create policy "Companies: read any" on public.companies
   for select using (true);
 
 -- Appointments: usuário acessa seus agendamentos
-create policy if not exists "Appointments: read own" on public.appointments
+drop policy if exists "Appointments: read own" on public.appointments;
+create policy "Appointments: read own" on public.appointments
   for select using (user_id = auth.uid());
-create policy if not exists "Appointments: modify own" on public.appointments
+drop policy if exists "Appointments: modify own" on public.appointments;
+create policy "Appointments: modify own" on public.appointments
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Emergency alerts: usuário acessa seus alertas
-create policy if not exists "Alerts: read own" on public.emergency_alerts
+drop policy if exists "Alerts: read own" on public.emergency_alerts;
+create policy "Alerts: read own" on public.emergency_alerts
   for select using (user_id = auth.uid());
-create policy if not exists "Alerts: modify own" on public.emergency_alerts
+drop policy if exists "Alerts: modify own" on public.emergency_alerts;
+create policy "Alerts: modify own" on public.emergency_alerts
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Vehicle transfers: envolvidos acessam
-create policy if not exists "Transfers: read involved" on public.vehicle_transfers
+drop policy if exists "Transfers: read involved" on public.vehicle_transfers;
+create policy "Transfers: read involved" on public.vehicle_transfers
   for select using (from_user_id = auth.uid() or to_user_id = auth.uid());
-create policy if not exists "Transfers: modify involved" on public.vehicle_transfers
+drop policy if exists "Transfers: modify involved" on public.vehicle_transfers;
+create policy "Transfers: modify involved" on public.vehicle_transfers
   for all using (from_user_id = auth.uid() or to_user_id = auth.uid())
   with check (from_user_id = auth.uid() or to_user_id = auth.uid());
 

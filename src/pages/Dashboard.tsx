@@ -20,8 +20,6 @@ import {
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
   
-  if (!user) return null;
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -71,6 +69,9 @@ const Dashboard: React.FC = () => {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
   }, [expenses]);
+
+  // Se não houver usuário logado, não renderiza conteúdo
+  if (!user) return null;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
