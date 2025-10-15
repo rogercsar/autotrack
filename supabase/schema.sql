@@ -339,3 +339,20 @@ create policy "Transfers: modify involved" on public.vehicle_transfers
   with check (from_user_id = auth.uid() or to_user_id = auth.uid());
 
 -- Fim do schema
+-- Storage buckets
+-- Cria bucket público para anexos de despesas (recibos)
+select storage.create_bucket('receipts', public => true);
+
+-- Políticas de objetos do storage para receipts
+drop policy if exists "Receipts: insert own" on storage.objects;
+create policy "Receipts: insert own" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'receipts' and owner = auth.uid());
+
+drop policy if exists "Receipts: update own" on storage.objects;
+create policy "Receipts: update own" on storage.objects
+  for update using (bucket_id = 'receipts' and owner = auth.uid());
+
+drop policy if exists "Receipts: delete own" on storage.objects;
+create policy "Receipts: delete own" on storage.objects
+  for delete using (bucket_id = 'receipts' and owner = auth.uid());

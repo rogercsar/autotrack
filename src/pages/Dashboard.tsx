@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getVehiclesByOwner } from '../services/vehicleService';
 import { getExpensesByVehicleIds } from '../services/expenseService';
@@ -19,6 +19,7 @@ import {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
   const [, setError] = useState<string | null>(null);
@@ -127,11 +128,11 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => navigate('/workshops')}>
             <MapPin className="w-4 h-4 mr-2" />
             Oficinas Próximas
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => navigate('/vehicles')}>
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Veículo
           </Button>
@@ -215,7 +216,7 @@ const Dashboard: React.FC = () => {
             <div className="text-center py-8">
               <Car className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">Nenhum veículo cadastrado</p>
-              <Button size="sm">
+              <Button size="sm" onClick={() => navigate('/vehicles')}>
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Primeiro Veículo
               </Button>
@@ -271,7 +272,7 @@ const Dashboard: React.FC = () => {
             <div className="text-center py-8">
               <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">Nenhuma despesa registrada</p>
-              <Button size="sm">
+              <Button size="sm" onClick={() => navigate('/expenses')}>
                 <Plus className="w-4 h-4 mr-2" />
                 Registrar Primeira Despesa
               </Button>
@@ -308,7 +309,7 @@ const Dashboard: React.FC = () => {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Próximos Pagamentos</h2>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/reports')}>
             <Calendar className="w-4 h-4 mr-2" />
             Ver Calendário
           </Button>

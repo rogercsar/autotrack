@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getUserVehicles, getUserGroups, mockAlerts } from '../data/mockData';
-import { EmergencyAlert, AlertType, Vehicle } from '../types';
+import { getVehiclesByOwner } from '../services/vehicleService';
+import { getGroupsByUser } from '../services/groupService';
+import { getAlertsByUser, createAlert, resolveAlert, deleteAlert } from '../services/alertsService';
+import { EmergencyAlert, AlertType, Vehicle, Group } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
@@ -19,14 +21,49 @@ import {
 
 const Alerts: React.FC = () => {
   const { user } = useAuth();
-  const [alerts, setAlerts] = useState<EmergencyAlert[]>(mockAlerts);
+  const [alerts, setAlerts] = useState<EmergencyAlert[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<EmergencyAlert | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'active' | 'resolved'>('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
 
-  const vehicles = getUserVehicles(user?.id || '');
-  const groups = getUserGroups(user?.id || '');
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      if (!user?.id) {
+        if (active) {
+          setVehicles([]);
+          setAlerts([]);
+          setGroups([]);
+          setLoading(false);
+        }
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const [vs, gs, as] = await Promise.all([
+          getVehiclesByOwner(user.id),
+          getGroupsByUser(user.id),
+          getAlertsByUser(user.id),
+        ]);
+        if (!active) return;
+        setVehicles(vs);
+        setGroups(gs);
+        setAlerts(as);
+      } catch (e: any) {
+        setError(e?.message || 'Falha ao carregar alertas');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    load();
+    return () => { active = false; };
+  }, [user?.id]);
 
   // Filtrar alertas
   const filteredAlerts = useMemo(() => {
@@ -89,41 +126,56 @@ const Alerts: React.FC = () => {
     }
   };
 
-  const handleCreateAlert = (alertData: Partial<EmergencyAlert>) => {
-    const newAlert: EmergencyAlert = {
-      id: Date.now().toString(),
-      userId: user?.id || '',
-      vehicleId: alertData.vehicleId || '',
-      type: alertData.type || AlertType.OTHER,
-      description: alertData.description || '',
-      location: alertData.location || {
-        latitude: -23.5505, // São Paulo por padrão
-        longitude: -46.6333,
-        address: 'Localização não disponível'
-      },
-      isActive: true,
-      sentTo: [], // Seria preenchido com membros do grupo
-      createdAt: new Date(),
-      resolvedAt: undefined
-    };
-
-    setAlerts([...alerts, newAlert]);
-    setIsCreateModalOpen(false);
+  const handleCreateAlert = async (alertData: Partial<EmergencyAlert>) => {
+    try {
+      const payload = {
+        userId: user?.id || '',
+        vehicleId: alertData.vehicleId || '',
+        type: alertData.type || AlertType.OTHER,
+        description: alertData.description || '',
+        location: alertData.location || {
+          latitude: -23.5505,
+          longitude: -46.6333,
+          address: 'Localização não disponível'
+        },
+        isActive: true,
+      } as Omit<EmergencyAlert, 'id' | 'createdAt' | 'resolvedAt' | 'sentTo'>;
+      const { alert, error } = await createAlert(payload);
+      if (error || !alert) {
+        setError(error?.message || 'Falha ao criar alerta');
+        return;
+      }
+      setAlerts([...alerts, alert]);
+      setIsCreateModalOpen(false);
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao criar alerta');
+    }
   };
 
-  const handleResolveAlert = (alertId: string) => {
-    const updatedAlerts = alerts.map(alert => 
-      alert.id === alertId 
-        ? { ...alert, isActive: false, resolvedAt: new Date() }
-        : alert
-    );
-
-    setAlerts(updatedAlerts);
+  const handleResolveAlert = async (alertId: string) => {
+    try {
+      const { alert, error } = await resolveAlert(alertId);
+      if (error || !alert) {
+        setError(error?.message || 'Falha ao resolver alerta');
+        return;
+      }
+      setAlerts(alerts.map(a => a.id === alertId ? alert : a));
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao resolver alerta');
+    }
   };
 
-  const handleDeleteAlert = (alertId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este alerta?')) {
+  const handleDeleteAlert = async (alertId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir este alerta?')) return;
+    try {
+      const { error } = await deleteAlert(alertId);
+      if (error) {
+        setError(error.message || 'Falha ao excluir alerta');
+        return;
+      }
       setAlerts(alerts.filter(alert => alert.id !== alertId));
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao excluir alerta');
     }
   };
 
@@ -261,7 +313,14 @@ const Alerts: React.FC = () => {
       </Card>
 
       {/* Lista de alertas */}
-      {filteredAlerts.length === 0 ? (
+      {loading ? (
+        <Card>
+          <div className="text-center py-12">
+            <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">Carregando...</p>
+          </div>
+        </Card>
+      ) : filteredAlerts.length === 0 ? (
         <Card>
           <div className="text-center py-12">
             <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />

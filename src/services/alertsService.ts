@@ -89,3 +89,12 @@ export async function resolveAlert(id: string) {
   if (error || !data) return { alert: null, error };
   return { alert: mapAlert(data as AlertRow), error: null };
 }
+
+export async function deleteAlert(id: string) {
+  const s = getSupabase();
+  const { error } = await s
+    .from('emergency_alerts')
+    .delete()
+    .eq('id', id);
+  return { error };
+}

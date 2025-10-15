@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getVehiclesByOwner } from '../services/vehicleService';
-import { getExpensesByVehicleIds } from '../services/expenseService';
+import { getExpensesByVehicleIds, createExpense, updateExpense, deleteExpense, uploadExpenseReceipt } from '../services/expenseService';
 import { Expense, ExpenseType } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
+import ImageUpload from '../components/ui/ImageUpload';
 import { 
   DollarSign, 
   Plus, 
@@ -37,7 +38,15 @@ const Expenses: React.FC = () => {
   useEffect(() => {
     let active = true;
     async function load() {
-      if (!user?.id) return;
+      if (!user?.id) {
+        // Sem usuário, encerra loading para evitar tela travada
+        if (active) {
+          setExpenses([]);
+          setVehicles([]);
+          setLoading(false);
+        }
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
@@ -153,41 +162,81 @@ const Expenses: React.FC = () => {
     return colors[type] || 'bg-gray-100 text-gray-800';
   };
 
-  const handleAddExpense = (expenseData: Partial<Expense>) => {
-    const newExpense: Expense = {
-      id: Date.now().toString(),
-      vehicleId: expenseData.vehicleId || '',
-      type: expenseData.type || ExpenseType.OTHER,
-      description: expenseData.description || '',
-      amount: expenseData.amount || 0,
-      date: expenseData.date || new Date(),
-      location: expenseData.location,
-      receipt: expenseData.receipt,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    setExpenses([...expenses, newExpense]);
-    setIsAddModalOpen(false);
+  const handleAddExpense = async (expenseData: Partial<Expense> & { receiptFile?: File | null }) => {
+    try {
+      const payload = {
+        vehicleId: expenseData.vehicleId || '',
+        type: expenseData.type || ExpenseType.OTHER,
+        description: expenseData.description || '',
+        amount: expenseData.amount || 0,
+        date: expenseData.date || new Date(),
+        location: expenseData.location,
+        receipt: expenseData.receipt,
+      };
+      if (expenseData.receiptFile && user?.id) {
+        const { url, error } = await uploadExpenseReceipt(user.id, expenseData.receiptFile);
+        if (error) {
+          setError(error.message || 'Falha ao anexar comprovante');
+          return;
+        }
+        payload.receipt = url || payload.receipt;
+      }
+      const { expense, error } = await createExpense(payload);
+      if (error || !expense) {
+        setError(error?.message || 'Falha ao adicionar despesa');
+        return;
+      }
+      setExpenses([...expenses, expense]);
+      setIsAddModalOpen(false);
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao adicionar despesa');
+    }
   };
 
-  const handleEditExpense = (expenseData: Partial<Expense>) => {
+  const handleEditExpense = async (expenseData: Partial<Expense> & { receiptFile?: File | null }) => {
     if (!editingExpense) return;
-
-    const updatedExpenses = expenses.map(e => 
-      e.id === editingExpense.id 
-        ? { ...e, ...expenseData, updatedAt: new Date() }
-        : e
-    );
-
-    setExpenses(updatedExpenses);
-    setIsEditModalOpen(false);
-    setEditingExpense(null);
+    try {
+      const changes = {
+        type: expenseData.type,
+        description: expenseData.description,
+        amount: expenseData.amount,
+        date: expenseData.date,
+        location: expenseData.location,
+        receipt: expenseData.receipt,
+      };
+      if (expenseData.receiptFile && user?.id) {
+        const { url, error } = await uploadExpenseReceipt(user.id, expenseData.receiptFile);
+        if (error) {
+          setError(error.message || 'Falha ao anexar comprovante');
+          return;
+        }
+        changes.receipt = url || changes.receipt;
+      }
+      const { expense, error } = await updateExpense(editingExpense.id, changes);
+      if (error || !expense) {
+        setError(error?.message || 'Falha ao atualizar despesa');
+        return;
+      }
+      const updatedExpenses = expenses.map(e => e.id === editingExpense.id ? expense : e);
+      setExpenses(updatedExpenses);
+      setIsEditModalOpen(false);
+      setEditingExpense(null);
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao atualizar despesa');
+    }
   };
 
-  const handleDeleteExpense = (expenseId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir esta despesa?')) {
+  const handleDeleteExpense = async (expenseId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir esta despesa?')) return;
+    try {
+      const { error } = await deleteExpense(expenseId);
+      if (error) {
+        setError(error.message || 'Falha ao excluir despesa');
+        return;
+      }
       setExpenses(expenses.filter(e => e.id !== expenseId));
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao excluir despesa');
     }
   };
 
@@ -453,7 +502,7 @@ const Expenses: React.FC = () => {
 interface ExpenseFormProps {
   vehicles: any[];
   expense?: Expense | null;
-  onSubmit: (data: Partial<Expense>) => void;
+  onSubmit: (data: Partial<Expense> & { receiptFile?: File | null }) => void;
   onCancel: () => void;
 }
 
@@ -467,13 +516,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ vehicles, expense, onSubmit, 
     location: expense?.location || '',
     receipt: expense?.receipt || ''
   });
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
       ...formData,
       date: new Date(formData.date),
-      amount: parseFloat(formData.amount.toString())
+      amount: parseFloat(formData.amount.toString()),
+      receiptFile
     });
   };
 
@@ -483,6 +534,10 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ vehicles, expense, onSubmit, 
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleReceiptChange = (file: File | null) => {
+    setReceiptFile(file);
   };
 
   return (
@@ -584,6 +639,15 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ vehicles, expense, onSubmit, 
           placeholder="Observações sobre o comprovante ou nota fiscal..."
         />
       </div>
+
+      <ImageUpload
+        label="Anexo (opcional)"
+        onChange={handleReceiptChange}
+        accept="image/*,application/pdf"
+        maxSize={10}
+        placeholder="Arraste uma imagem ou PDF aqui"
+        helperText="Formatos aceitos: JPG, PNG, GIF, PDF. Tamanho máximo: 10MB"
+      />
 
       <div className="flex justify-end space-x-3 pt-4">
         <Button type="button" variant="outline" onClick={onCancel}>
