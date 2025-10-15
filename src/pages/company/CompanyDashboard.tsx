@@ -16,12 +16,9 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  MessageCircle,
   Search,
   Filter,
-  Plus,
-  Eye,
-  Trash2
+  Eye
 } from 'lucide-react';
 
 const CompanyDashboard: React.FC = () => {

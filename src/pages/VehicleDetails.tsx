@@ -538,13 +538,6 @@ interface VehicleShareFormProps {
 const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose }) => {
   const [shareUrl, setShareUrl] = useState('');
 
-  const generateShareUrl = () => {
-    const baseUrl = window.location.origin;
-    const url = `${baseUrl}/public/vehicle/${vehicle.id}`;
-    setShareUrl(url);
-    return url;
-  };
-
   const copyToClipboard = async () => {
     if (shareUrl) {
       try {
@@ -558,8 +551,10 @@ const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose })
   };
 
   React.useEffect(() => {
-    generateShareUrl();
-  }, []);
+    const baseUrl = window.location.origin;
+    const url = `${baseUrl}/public/vehicle/${vehicle.id}`;
+    setShareUrl(url);
+  }, [vehicle.id]);
 
   return (
     <div className="space-y-4">

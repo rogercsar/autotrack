@@ -10,14 +10,12 @@ import {
   User as UserIcon, 
   Edit, 
   Save, 
-  X,
   Mail,
   Phone,
   Shield,
   Crown,
   Star,
   Calendar,
-  Settings,
   Bell,
   Lock,
   Eye,
@@ -25,7 +23,7 @@ import {
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);

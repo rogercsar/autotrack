@@ -8,7 +8,6 @@ import Input from '../components/ui/Input';
 import { 
   MapPin, 
   Search, 
-  Filter,
   Phone,
   Mail,
   Star,
@@ -18,13 +17,12 @@ import {
   Clock,
   Wrench,
   Car,
-  ChevronRight,
   Map,
   List
 } from 'lucide-react';
 
 const Workshops: React.FC = () => {
-  const [companies, setCompanies] = useState<Company[]>(mockCompanies);
+  const [companies] = useState<Company[]>(mockCompanies);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
@@ -61,9 +59,7 @@ const Workshops: React.FC = () => {
     return filtered;
   }, [companies, searchTerm, selectedType, sortBy]);
 
-  const formatPhone = (phone: string) => {
-    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  };
+  // formatPhone definido e usado em CompanyDetails
 
   const getCompanyTypeLabel = (type: string) => {
     return type === 'workshop' ? 'Oficina' : 'Concessionária';

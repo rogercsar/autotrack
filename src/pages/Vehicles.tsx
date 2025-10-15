@@ -29,14 +29,6 @@ interface VehicleShareFormProps {
 const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose }) => {
   const [shareUrl, setShareUrl] = useState('');
 
-  const generateShareUrl = () => {
-    if (!vehicle) return '';
-    const baseUrl = window.location.origin;
-    const url = `${baseUrl}/public/vehicle/${vehicle.id}`;
-    setShareUrl(url);
-    return url;
-  };
-
   const copyToClipboard = async () => {
     if (shareUrl) {
       try {
@@ -50,9 +42,13 @@ const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose })
   };
 
   React.useEffect(() => {
-    if (vehicle) {
-      generateShareUrl();
+    if (!vehicle) {
+      setShareUrl('');
+      return;
     }
+    const baseUrl = window.location.origin;
+    const url = `${baseUrl}/public/vehicle/${vehicle.id}`;
+    setShareUrl(url);
   }, [vehicle]);
 
   if (!vehicle) {
