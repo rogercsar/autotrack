@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getVehiclesByOwner } from '../services/vehicleService';
+import { getVehiclesByOwner, createVehicle, updateVehicle, deleteVehicle } from '../services/vehicleService';
 import { Vehicle } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -102,9 +102,16 @@ const Vehicles: React.FC = () => {
   useEffect(() => {
     let active = true;
     async function load() {
-      if (!user?.id) return;
-      setLoading(true);
       setError(null);
+      if (!user?.id) {
+        // Se não há usuário, encerra o loading para evitar tela travada
+        if (active) {
+          setVehicles([]);
+          setLoading(false);
+        }
+        return;
+      }
+      setLoading(true);
       try {
         const v = await getVehiclesByOwner(user.id);
         if (!active) return;
@@ -127,42 +134,70 @@ const Vehicles: React.FC = () => {
     }).format(new Date(date));
   };
 
-  const handleAddVehicle = (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
-    const newVehicle: Vehicle = {
-      id: Date.now().toString(),
-      ownerId: user?.id || '',
-      plate: vehicleData.plate || '',
-      model: vehicleData.model || '',
-      year: vehicleData.year || new Date().getFullYear(),
-      color: vehicleData.color || '',
-      renavam: vehicleData.renavam || '',
-      photo: vehicleData.photo,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-
-    setVehicles([...vehicles, newVehicle]);
-    setIsAddModalOpen(false);
+  const handleAddVehicle = async (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
+    if (!user?.id) {
+      setError('Usuário não autenticado');
+      return;
+    }
+    try {
+      const payload = {
+        ownerId: user.id,
+        plate: vehicleData.plate || '',
+        model: vehicleData.model || '',
+        year: vehicleData.year || new Date().getFullYear(),
+        color: vehicleData.color || '',
+        renavam: vehicleData.renavam || '',
+        photo: vehicleData.photo || undefined,
+      };
+      const { vehicle, error } = await createVehicle(payload);
+      if (error || !vehicle) {
+        setError(error?.message || 'Falha ao criar veículo');
+        return;
+      }
+      setVehicles([vehicle, ...vehicles]);
+      setIsAddModalOpen(false);
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao criar veículo');
+    }
   };
 
-  const handleEditVehicle = (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
+  const handleEditVehicle = async (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
     if (!editingVehicle) return;
-
-    const updatedVehicles = vehicles.map(v => 
-      v.id === editingVehicle.id 
-        ? { ...v, ...vehicleData, updatedAt: new Date() }
-        : v
-    );
-
-    setVehicles(updatedVehicles);
-    setIsEditModalOpen(false);
-    setEditingVehicle(null);
+    try {
+      const changes = {
+        plate: vehicleData.plate,
+        model: vehicleData.model,
+        year: vehicleData.year,
+        color: vehicleData.color,
+        renavam: vehicleData.renavam,
+        photo: vehicleData.photo || undefined,
+        isActive: editingVehicle.isActive,
+      };
+      const { vehicle, error } = await updateVehicle(editingVehicle.id, changes);
+      if (error || !vehicle) {
+        setError(error?.message || 'Falha ao atualizar veículo');
+        return;
+      }
+      const updatedVehicles = vehicles.map(v => v.id === editingVehicle.id ? vehicle : v);
+      setVehicles(updatedVehicles);
+      setIsEditModalOpen(false);
+      setEditingVehicle(null);
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao atualizar veículo');
+    }
   };
 
-  const handleDeleteVehicle = (vehicleId: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este veículo?')) {
+  const handleDeleteVehicle = async (vehicleId: string) => {
+    if (!window.confirm('Tem certeza que deseja excluir este veículo?')) return;
+    try {
+      const { error } = await deleteVehicle(vehicleId);
+      if (error) {
+        setError(error.message || 'Falha ao excluir veículo');
+        return;
+      }
       setVehicles(vehicles.filter(v => v.id !== vehicleId));
+    } catch (e: any) {
+      setError(e?.message || 'Erro inesperado ao excluir veículo');
     }
   };
 
