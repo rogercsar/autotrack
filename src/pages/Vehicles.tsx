@@ -1,68 +1,78 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuthStore } from '../stores/authStore';
-import { getVehiclesByOwner, createVehicle, updateVehicle, deleteVehicle } from '../services/vehicleService';
-import { Vehicle } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import ImageUpload from '../components/ui/ImageUpload';
-import { 
-  Car, 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useAuthStore } from '../stores/authStore'
+import {
+  getVehiclesByOwner,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+} from '../services/vehicleService'
+import { Vehicle } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import ImageUpload from '../components/ui/ImageUpload'
+import {
+  Car,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
   Share2,
   Calendar,
   DollarSign,
-  Users
-} from 'lucide-react';
+  Users,
+} from 'lucide-react'
 
 // Componente de compartilhamento
 interface VehicleShareFormProps {
-  vehicle: Vehicle | null;
-  onClose: () => void;
+  vehicle: Vehicle | null
+  onClose: () => void
 }
 
-const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose }) => {
-  const [shareUrl, setShareUrl] = useState('');
+const VehicleShareForm: React.FC<VehicleShareFormProps> = ({
+  vehicle,
+  onClose,
+}) => {
+  const [shareUrl, setShareUrl] = useState('')
 
   const copyToClipboard = async () => {
     if (shareUrl) {
       try {
-        await navigator.clipboard.writeText(shareUrl);
-        alert('Link copiado para a área de transferência!');
+        await navigator.clipboard.writeText(shareUrl)
+        alert('Link copiado para a área de transferência!')
       } catch (err) {
-        console.error('Erro ao copiar link:', err);
-        alert('Erro ao copiar link. Tente novamente.');
+        console.error('Erro ao copiar link:', err)
+        alert('Erro ao copiar link. Tente novamente.')
       }
     }
-  };
+  }
 
   React.useEffect(() => {
     if (!vehicle) {
-      setShareUrl('');
-      return;
+      setShareUrl('')
+      return
     }
-    const baseUrl = window.location.origin;
-    const url = `${baseUrl}/public/vehicle/${vehicle.id}`;
-    setShareUrl(url);
-  }, [vehicle]);
+    const baseUrl = window.location.origin
+    const url = `${baseUrl}/public/vehicle/${vehicle.id}`
+    setShareUrl(url)
+  }, [vehicle])
 
   if (!vehicle) {
     return (
       <div className="text-center py-4">
         <p className="text-gray-600">Nenhum veículo selecionado</p>
       </div>
-    );
+    )
   }
 
   return (
     <div className="space-y-4">
       <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="font-medium text-gray-900 mb-2">Link de compartilhamento</h3>
+        <h3 className="font-medium text-gray-900 mb-2">
+          Link de compartilhamento
+        </h3>
         <div className="flex space-x-2">
           <Input
             value={shareUrl}
@@ -85,59 +95,63 @@ const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose })
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const Vehicles: React.FC = () => {
-  const { user } = useAuthStore();
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [sharingVehicle, setSharingVehicle] = useState<Vehicle | null>(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const { user } = useAuthStore()
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [sharingVehicle, setSharingVehicle] = useState<Vehicle | null>(null)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   useEffect(() => {
-    let active = true;
+    let active = true
     async function load() {
-      setError(null);
+      setError(null)
       if (!user?.id) {
         // Se não há usuário, encerra o loading para evitar tela travada
         if (active) {
-          setVehicles([]);
-          setLoading(false);
+          setVehicles([])
+          setLoading(false)
         }
-        return;
+        return
       }
-      setLoading(true);
+      setLoading(true)
       try {
-        const v = await getVehiclesByOwner(user.id);
-        if (!active) return;
-        setVehicles(v);
+        const v = await getVehiclesByOwner(user.id)
+        if (!active) return
+        setVehicles(v)
       } catch (e: any) {
-        setError(e?.message || 'Falha ao carregar veículos');
+        setError(e?.message || 'Falha ao carregar veículos')
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoading(false)
       }
     }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+    load()
+    return () => {
+      active = false
+    }
+  }, [user?.id])
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
-  };
+      year: 'numeric',
+    }).format(new Date(date))
+  }
 
-  const handleAddVehicle = async (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
+  const handleAddVehicle = async (
+    vehicleData: Partial<Vehicle> & { photoFile?: File | null }
+  ) => {
     if (!user?.id) {
-      setError('Usuário não autenticado');
-      return;
+      setError('Usuário não autenticado')
+      return
     }
     try {
       const payload = {
@@ -148,21 +162,23 @@ const Vehicles: React.FC = () => {
         color: vehicleData.color || '',
         renavam: vehicleData.renavam || '',
         photo: vehicleData.photo || undefined,
-      };
-      const { vehicle, error } = await createVehicle(payload);
-      if (error || !vehicle) {
-        setError(error?.message || 'Falha ao criar veículo');
-        return;
       }
-      setVehicles([vehicle, ...vehicles]);
-      setIsAddModalOpen(false);
+      const { vehicle, error } = await createVehicle(payload)
+      if (error || !vehicle) {
+        setError(error?.message || 'Falha ao criar veículo')
+        return
+      }
+      setVehicles([vehicle, ...vehicles])
+      setIsAddModalOpen(false)
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao criar veículo');
+      setError(e?.message || 'Erro inesperado ao criar veículo')
     }
-  };
+  }
 
-  const handleEditVehicle = async (vehicleData: Partial<Vehicle> & { photoFile?: File | null }) => {
-    if (!editingVehicle) return;
+  const handleEditVehicle = async (
+    vehicleData: Partial<Vehicle> & { photoFile?: File | null }
+  ) => {
+    if (!editingVehicle) return
     try {
       const changes = {
         plate: vehicleData.plate,
@@ -172,44 +188,46 @@ const Vehicles: React.FC = () => {
         renavam: vehicleData.renavam,
         photo: vehicleData.photo || undefined,
         isActive: editingVehicle.isActive,
-      };
-      const { vehicle, error } = await updateVehicle(editingVehicle.id, changes);
-      if (error || !vehicle) {
-        setError(error?.message || 'Falha ao atualizar veículo');
-        return;
       }
-      const updatedVehicles = vehicles.map(v => v.id === editingVehicle.id ? vehicle : v);
-      setVehicles(updatedVehicles);
-      setIsEditModalOpen(false);
-      setEditingVehicle(null);
+      const { vehicle, error } = await updateVehicle(editingVehicle.id, changes)
+      if (error || !vehicle) {
+        setError(error?.message || 'Falha ao atualizar veículo')
+        return
+      }
+      const updatedVehicles = vehicles.map((v) =>
+        v.id === editingVehicle.id ? vehicle : v
+      )
+      setVehicles(updatedVehicles)
+      setIsEditModalOpen(false)
+      setEditingVehicle(null)
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao atualizar veículo');
+      setError(e?.message || 'Erro inesperado ao atualizar veículo')
     }
-  };
+  }
 
   const handleDeleteVehicle = async (vehicleId: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este veículo?')) return;
+    if (!window.confirm('Tem certeza que deseja excluir este veículo?')) return
     try {
-      const { error } = await deleteVehicle(vehicleId);
+      const { error } = await deleteVehicle(vehicleId)
       if (error) {
-        setError(error.message || 'Falha ao excluir veículo');
-        return;
+        setError(error.message || 'Falha ao excluir veículo')
+        return
       }
-      setVehicles(vehicles.filter(v => v.id !== vehicleId));
+      setVehicles(vehicles.filter((v) => v.id !== vehicleId))
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao excluir veículo');
+      setError(e?.message || 'Erro inesperado ao excluir veículo')
     }
-  };
+  }
 
   const openEditModal = (vehicle: Vehicle) => {
-    setEditingVehicle(vehicle);
-    setIsEditModalOpen(true);
-  };
+    setEditingVehicle(vehicle)
+    setIsEditModalOpen(true)
+  }
 
   const openShareModal = (vehicle: Vehicle) => {
-    setSharingVehicle(vehicle);
-    setIsShareModalOpen(true);
-  };
+    setSharingVehicle(vehicle)
+    setIsShareModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
@@ -243,7 +261,8 @@ const Vehicles: React.FC = () => {
               Nenhum veículo cadastrado
             </h3>
             <p className="text-gray-500 mb-6">
-              Comece adicionando seu primeiro veículo para começar a gerenciar suas despesas
+              Comece adicionando seu primeiro veículo para começar a gerenciar
+              suas despesas
             </p>
             <Button onClick={() => setIsAddModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
@@ -317,8 +336,8 @@ const Vehicles: React.FC = () => {
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => openShareModal(vehicle)}
                   >
@@ -376,8 +395,8 @@ const Vehicles: React.FC = () => {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingVehicle(null);
+          setIsEditModalOpen(false)
+          setEditingVehicle(null)
         }}
         title="Editar Veículo"
         size="md"
@@ -386,8 +405,8 @@ const Vehicles: React.FC = () => {
           vehicle={editingVehicle}
           onSubmit={handleEditVehicle}
           onCancel={() => {
-            setIsEditModalOpen(false);
-            setEditingVehicle(null);
+            setIsEditModalOpen(false)
+            setEditingVehicle(null)
           }}
         />
       </Modal>
@@ -396,8 +415,8 @@ const Vehicles: React.FC = () => {
       <Modal
         isOpen={isShareModalOpen}
         onClose={() => {
-          setIsShareModalOpen(false);
-          setSharingVehicle(null);
+          setIsShareModalOpen(false)
+          setSharingVehicle(null)
         }}
         title="Compartilhar Veículo"
         size="md"
@@ -405,52 +424,57 @@ const Vehicles: React.FC = () => {
         <VehicleShareForm
           vehicle={sharingVehicle}
           onClose={() => {
-            setIsShareModalOpen(false);
-            setSharingVehicle(null);
+            setIsShareModalOpen(false)
+            setSharingVehicle(null)
           }}
         />
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente do formulário de veículo
 interface VehicleFormProps {
-  vehicle?: Vehicle | null;
-  onSubmit: (data: Partial<Vehicle> & { photoFile?: File | null }) => void;
-  onCancel: () => void;
+  vehicle?: Vehicle | null
+  onSubmit: (data: Partial<Vehicle> & { photoFile?: File | null }) => void
+  onCancel: () => void
 }
 
-const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onSubmit, onCancel }) => {
+const VehicleForm: React.FC<VehicleFormProps> = ({
+  vehicle,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     plate: vehicle?.plate || '',
     model: vehicle?.model || '',
     year: vehicle?.year || new Date().getFullYear(),
     color: vehicle?.color || '',
     renavam: vehicle?.renavam || '',
-    photo: vehicle?.photo || ''
-  });
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+    photo: vehicle?.photo || '',
+  })
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({ ...formData, photoFile });
-  };
+    e.preventDefault()
+    onSubmit({ ...formData, photoFile })
+  }
 
   const handlePhotoChange = (file: File | null, previewUrl?: string) => {
-    setPhotoFile(file);
+    setPhotoFile(file)
     if (previewUrl) {
-      setFormData(prev => ({ ...prev, photo: previewUrl }));
+      setFormData((prev) => ({ ...prev, photo: previewUrl }))
     }
-  };
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: name === 'year' ? parseInt(value) || new Date().getFullYear() : value
-    }));
-  };
+      [name]:
+        name === 'year' ? parseInt(value) || new Date().getFullYear() : value,
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -517,7 +541,7 @@ const VehicleForm: React.FC<VehicleFormProps> = ({ vehicle, onSubmit, onCancel }
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default Vehicles;
+export default Vehicles

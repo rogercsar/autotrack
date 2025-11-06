@@ -27,7 +27,9 @@ export const getUser = async () => {
   return await s.auth.getUser()
 }
 
-export const onAuthStateChange = (callback: (event: any, session: any) => void) => {
+export const onAuthStateChange = (
+  callback: (event: any, session: any) => void
+) => {
   const s = getSupabase()
   const { data: listener } = s.auth.onAuthStateChange(callback)
   return listener

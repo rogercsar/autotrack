@@ -1,140 +1,171 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useAuthStore } from '../stores/authStore';
-import { getVehiclesByOwner } from '../services/vehicleService';
-import { getExpensesByVehicleIds, createExpense, updateExpense, deleteExpense, uploadExpenseReceipt } from '../services/expenseService';
-import { Expense, ExpenseType } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import ImageUpload from '../components/ui/ImageUpload';
-import { 
-  DollarSign, 
-  Plus, 
-  Edit, 
-  Trash2, 
+import React, { useEffect, useState, useMemo } from 'react'
+import { useAuthStore } from '../stores/authStore'
+import { getVehiclesByOwner } from '../services/vehicleService'
+import {
+  getExpensesByVehicleIds,
+  createExpense,
+  updateExpense,
+  deleteExpense,
+  uploadExpenseReceipt,
+} from '../services/expenseService'
+import { Expense, ExpenseType } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import ImageUpload from '../components/ui/ImageUpload'
+import {
+  DollarSign,
+  Plus,
+  Edit,
+  Trash2,
   Search,
   MapPin,
   Receipt,
   TrendingUp,
-  TrendingDown
-} from 'lucide-react';
+  TrendingDown,
+} from 'lucide-react'
 
 const Expenses: React.FC = () => {
-  const { user } = useAuthStore();
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedVehicle, setSelectedVehicle] = useState<string>('all');
-  const [selectedType, setSelectedType] = useState<ExpenseType | 'all'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'type'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const { user } = useAuthStore()
+  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [vehicles, setVehicles] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedVehicle, setSelectedVehicle] = useState<string>('all')
+  const [selectedType, setSelectedType] = useState<ExpenseType | 'all'>('all')
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'type'>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
-    let active = true;
+    let active = true
     async function load() {
       if (!user?.id) {
         // Sem usuário, encerra loading para evitar tela travada
         if (active) {
-          setExpenses([]);
-          setVehicles([]);
-          setLoading(false);
+          setExpenses([])
+          setVehicles([])
+          setLoading(false)
         }
-        return;
+        return
       }
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       try {
-        const v = await getVehiclesByOwner(user.id);
-        if (!active) return;
-        setVehicles(v);
-        const vehicleIds = v.map((x) => x.id);
-        const exps = vehicleIds.length ? await getExpensesByVehicleIds(vehicleIds) : [];
-        if (!active) return;
-        setExpenses(exps);
+        const v = await getVehiclesByOwner(user.id)
+        if (!active) return
+        setVehicles(v)
+        const vehicleIds = v.map((x) => x.id)
+        const exps = vehicleIds.length
+          ? await getExpensesByVehicleIds(vehicleIds)
+          : []
+        if (!active) return
+        setExpenses(exps)
       } catch (e: any) {
-        setError(e?.message || 'Falha ao carregar despesas');
+        setError(e?.message || 'Falha ao carregar despesas')
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoading(false)
       }
     }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+    load()
+    return () => {
+      active = false
+    }
+  }, [user?.id])
 
   // Filtrar e ordenar despesas
   const filteredExpenses = useMemo(() => {
-    let filtered = expenses.filter(expense => {
-      const vehicle = vehicles.find(v => v.id === expense.vehicleId);
-      if (!vehicle) return false;
+    let filtered = expenses.filter((expense) => {
+      const vehicle = vehicles.find((v) => v.id === expense.vehicleId)
+      if (!vehicle) return false
 
-      const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           vehicle.model.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesVehicle = selectedVehicle === 'all' || expense.vehicleId === selectedVehicle;
-      const matchesType = selectedType === 'all' || expense.type === selectedType;
+      const matchesSearch =
+        expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle.model.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesVehicle =
+        selectedVehicle === 'all' || expense.vehicleId === selectedVehicle
+      const matchesType =
+        selectedType === 'all' || expense.type === selectedType
 
-      return matchesSearch && matchesVehicle && matchesType;
-    });
+      return matchesSearch && matchesVehicle && matchesType
+    })
 
     // Ordenar
     filtered.sort((a, b) => {
-      let comparison = 0;
-      
+      let comparison = 0
+
       switch (sortBy) {
         case 'date':
-          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
-          break;
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime()
+          break
         case 'amount':
-          comparison = a.amount - b.amount;
-          break;
+          comparison = a.amount - b.amount
+          break
         case 'type':
-          comparison = a.type.localeCompare(b.type);
-          break;
+          comparison = a.type.localeCompare(b.type)
+          break
       }
 
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
 
-    return filtered;
-  }, [expenses, vehicles, searchTerm, selectedVehicle, selectedType, sortBy, sortOrder]);
+    return filtered
+  }, [
+    expenses,
+    vehicles,
+    searchTerm,
+    selectedVehicle,
+    selectedType,
+    sortBy,
+    sortOrder,
+  ])
 
   // Calcular estatísticas
   const stats = useMemo(() => {
-    const total = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-    const thisMonth = filteredExpenses.filter(expense => {
-      const expenseDate = new Date(expense.date);
-      const now = new Date();
-      return expenseDate.getMonth() === now.getMonth() && 
-             expenseDate.getFullYear() === now.getFullYear();
-    }).reduce((sum, expense) => sum + expense.amount, 0);
+    const total = filteredExpenses.reduce(
+      (sum, expense) => sum + expense.amount,
+      0
+    )
+    const thisMonth = filteredExpenses
+      .filter((expense) => {
+        const expenseDate = new Date(expense.date)
+        const now = new Date()
+        return (
+          expenseDate.getMonth() === now.getMonth() &&
+          expenseDate.getFullYear() === now.getFullYear()
+        )
+      })
+      .reduce((sum, expense) => sum + expense.amount, 0)
 
-    const byType = filteredExpenses.reduce((acc, expense) => {
-      acc[expense.type] = (acc[expense.type] || 0) + expense.amount;
-      return acc;
-    }, {} as Record<string, number>);
+    const byType = filteredExpenses.reduce(
+      (acc, expense) => {
+        acc[expense.type] = (acc[expense.type] || 0) + expense.amount
+        return acc
+      },
+      {} as Record<string, number>
+    )
 
-    return { total, thisMonth, byType };
-  }, [filteredExpenses]);
+    return { total, thisMonth, byType }
+  }, [filteredExpenses])
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+      currency: 'BRL',
+    }).format(value)
+  }
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
-  };
+      year: 'numeric',
+    }).format(new Date(date))
+  }
 
   const getExpenseTypeLabel = (type: ExpenseType) => {
     const types: Record<ExpenseType, string> = {
@@ -144,10 +175,10 @@ const Expenses: React.FC = () => {
       insurance: 'Seguro',
       ipva: 'IPVA',
       licensing: 'Licenciamento',
-      other: 'Outros'
-    };
-    return types[type] || type;
-  };
+      other: 'Outros',
+    }
+    return types[type] || type
+  }
 
   const getExpenseTypeColor = (type: ExpenseType) => {
     const colors: Record<ExpenseType, string> = {
@@ -157,12 +188,14 @@ const Expenses: React.FC = () => {
       insurance: 'bg-green-100 text-green-800',
       ipva: 'bg-purple-100 text-purple-800',
       licensing: 'bg-yellow-100 text-yellow-800',
-      other: 'bg-gray-100 text-gray-800'
-    };
-    return colors[type] || 'bg-gray-100 text-gray-800';
-  };
+      other: 'bg-gray-100 text-gray-800',
+    }
+    return colors[type] || 'bg-gray-100 text-gray-800'
+  }
 
-  const handleAddExpense = async (expenseData: Partial<Expense> & { receiptFile?: File | null }) => {
+  const handleAddExpense = async (
+    expenseData: Partial<Expense> & { receiptFile?: File | null }
+  ) => {
     try {
       const payload = {
         vehicleId: expenseData.vehicleId || '',
@@ -172,29 +205,34 @@ const Expenses: React.FC = () => {
         date: expenseData.date || new Date(),
         location: expenseData.location,
         receipt: expenseData.receipt,
-      };
+      }
       if (expenseData.receiptFile && user?.id) {
-        const { url, error } = await uploadExpenseReceipt(user.id, expenseData.receiptFile);
+        const { url, error } = await uploadExpenseReceipt(
+          user.id,
+          expenseData.receiptFile
+        )
         if (error) {
-          setError(error.message || 'Falha ao anexar comprovante');
-          return;
+          setError(error.message || 'Falha ao anexar comprovante')
+          return
         }
-        payload.receipt = url || payload.receipt;
+        payload.receipt = url || payload.receipt
       }
-      const { expense, error } = await createExpense(payload);
+      const { expense, error } = await createExpense(payload)
       if (error || !expense) {
-        setError(error?.message || 'Falha ao adicionar despesa');
-        return;
+        setError(error?.message || 'Falha ao adicionar despesa')
+        return
       }
-      setExpenses([...expenses, expense]);
-      setIsAddModalOpen(false);
+      setExpenses([...expenses, expense])
+      setIsAddModalOpen(false)
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao adicionar despesa');
+      setError(e?.message || 'Erro inesperado ao adicionar despesa')
     }
-  };
+  }
 
-  const handleEditExpense = async (expenseData: Partial<Expense> & { receiptFile?: File | null }) => {
-    if (!editingExpense) return;
+  const handleEditExpense = async (
+    expenseData: Partial<Expense> & { receiptFile?: File | null }
+  ) => {
+    if (!editingExpense) return
     try {
       const changes = {
         type: expenseData.type,
@@ -203,47 +241,52 @@ const Expenses: React.FC = () => {
         date: expenseData.date,
         location: expenseData.location,
         receipt: expenseData.receipt,
-      };
+      }
       if (expenseData.receiptFile && user?.id) {
-        const { url, error } = await uploadExpenseReceipt(user.id, expenseData.receiptFile);
+        const { url, error } = await uploadExpenseReceipt(
+          user.id,
+          expenseData.receiptFile
+        )
         if (error) {
-          setError(error.message || 'Falha ao anexar comprovante');
-          return;
+          setError(error.message || 'Falha ao anexar comprovante')
+          return
         }
-        changes.receipt = url || changes.receipt;
+        changes.receipt = url || changes.receipt
       }
-      const { expense, error } = await updateExpense(editingExpense.id, changes);
+      const { expense, error } = await updateExpense(editingExpense.id, changes)
       if (error || !expense) {
-        setError(error?.message || 'Falha ao atualizar despesa');
-        return;
+        setError(error?.message || 'Falha ao atualizar despesa')
+        return
       }
-      const updatedExpenses = expenses.map(e => e.id === editingExpense.id ? expense : e);
-      setExpenses(updatedExpenses);
-      setIsEditModalOpen(false);
-      setEditingExpense(null);
+      const updatedExpenses = expenses.map((e) =>
+        e.id === editingExpense.id ? expense : e
+      )
+      setExpenses(updatedExpenses)
+      setIsEditModalOpen(false)
+      setEditingExpense(null)
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao atualizar despesa');
+      setError(e?.message || 'Erro inesperado ao atualizar despesa')
     }
-  };
+  }
 
   const handleDeleteExpense = async (expenseId: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir esta despesa?')) return;
+    if (!window.confirm('Tem certeza que deseja excluir esta despesa?')) return
     try {
-      const { error } = await deleteExpense(expenseId);
+      const { error } = await deleteExpense(expenseId)
       if (error) {
-        setError(error.message || 'Falha ao excluir despesa');
-        return;
+        setError(error.message || 'Falha ao excluir despesa')
+        return
       }
-      setExpenses(expenses.filter(e => e.id !== expenseId));
+      setExpenses(expenses.filter((e) => e.id !== expenseId))
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao excluir despesa');
+      setError(e?.message || 'Erro inesperado ao excluir despesa')
     }
-  };
+  }
 
   const openEditModal = (expense: Expense) => {
-    setEditingExpense(expense);
-    setIsEditModalOpen(true);
-  };
+    setEditingExpense(expense)
+    setIsEditModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
@@ -325,7 +368,7 @@ const Expenses: React.FC = () => {
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="all">Todos os veículos</option>
-            {vehicles.map(vehicle => (
+            {vehicles.map((vehicle) => (
               <option key={vehicle.id} value={vehicle.id}>
                 {vehicle.model} - {vehicle.plate}
               </option>
@@ -334,11 +377,13 @@ const Expenses: React.FC = () => {
 
           <select
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value as ExpenseType | 'all')}
+            onChange={(e) =>
+              setSelectedType(e.target.value as ExpenseType | 'all')
+            }
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="all">Todos os tipos</option>
-            {Object.values(ExpenseType).map(type => (
+            {Object.values(ExpenseType).map((type) => (
               <option key={type} value={type}>
                 {getExpenseTypeLabel(type)}
               </option>
@@ -348,7 +393,9 @@ const Expenses: React.FC = () => {
           <div className="flex space-x-2">
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'date' | 'amount' | 'type')}
+              onChange={(e) =>
+                setSortBy(e.target.value as 'date' | 'amount' | 'type')
+              }
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="date">Data</option>
@@ -359,7 +406,11 @@ const Expenses: React.FC = () => {
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
               className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              {sortOrder === 'asc' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+              {sortOrder === 'asc' ? (
+                <TrendingUp className="w-4 h-4" />
+              ) : (
+                <TrendingDown className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -383,8 +434,7 @@ const Expenses: React.FC = () => {
             <p className="text-gray-500 mb-6">
               {searchTerm || selectedVehicle !== 'all' || selectedType !== 'all'
                 ? 'Tente ajustar os filtros de busca'
-                : 'Comece registrando sua primeira despesa'
-              }
+                : 'Comece registrando sua primeira despesa'}
             </p>
             <Button onClick={() => setIsAddModalOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
@@ -400,7 +450,7 @@ const Expenses: React.FC = () => {
             </div>
           )}
           {filteredExpenses.map((expense) => {
-            const vehicle = vehicles.find(v => v.id === expense.vehicleId);
+            const vehicle = vehicles.find((v) => v.id === expense.vehicleId)
             return (
               <Card key={expense.id}>
                 <div className="flex items-center justify-between">
@@ -410,7 +460,9 @@ const Expenses: React.FC = () => {
                     </div>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getExpenseTypeColor(expense.type)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getExpenseTypeColor(expense.type)}`}
+                        >
                           {getExpenseTypeLabel(expense.type)}
                         </span>
                         <span className="text-sm text-gray-500">
@@ -431,7 +483,7 @@ const Expenses: React.FC = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <p className="text-lg font-semibold text-gray-900">
                       {formatCurrency(expense.amount)}
@@ -455,7 +507,7 @@ const Expenses: React.FC = () => {
                   </div>
                 </div>
               </Card>
-            );
+            )
           })}
         </div>
       )}
@@ -478,8 +530,8 @@ const Expenses: React.FC = () => {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
-          setEditingExpense(null);
+          setIsEditModalOpen(false)
+          setEditingExpense(null)
         }}
         title="Editar Despesa"
         size="md"
@@ -489,56 +541,67 @@ const Expenses: React.FC = () => {
           expense={editingExpense}
           onSubmit={handleEditExpense}
           onCancel={() => {
-            setIsEditModalOpen(false);
-            setEditingExpense(null);
+            setIsEditModalOpen(false)
+            setEditingExpense(null)
           }}
         />
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente do formulário de despesa
 interface ExpenseFormProps {
-  vehicles: any[];
-  expense?: Expense | null;
-  onSubmit: (data: Partial<Expense> & { receiptFile?: File | null }) => void;
-  onCancel: () => void;
+  vehicles: any[]
+  expense?: Expense | null
+  onSubmit: (data: Partial<Expense> & { receiptFile?: File | null }) => void
+  onCancel: () => void
 }
 
-const ExpenseForm: React.FC<ExpenseFormProps> = ({ vehicles, expense, onSubmit, onCancel }) => {
+const ExpenseForm: React.FC<ExpenseFormProps> = ({
+  vehicles,
+  expense,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     vehicleId: expense?.vehicleId || '',
     type: expense?.type || ExpenseType.FUEL,
     description: expense?.description || '',
     amount: expense?.amount || 0,
-    date: expense?.date ? new Date(expense.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    date: expense?.date
+      ? new Date(expense.date).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0],
     location: expense?.location || '',
-    receipt: expense?.receipt || ''
-  });
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+    receipt: expense?.receipt || '',
+  })
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     onSubmit({
       ...formData,
       date: new Date(formData.date),
       amount: parseFloat(formData.amount.toString()),
-      receiptFile
-    });
-  };
+      receiptFile,
+    })
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleReceiptChange = (file: File | null) => {
-    setReceiptFile(file);
-  };
+    setReceiptFile(file)
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -555,7 +618,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ vehicles, expense, onSubmit, 
             required
           >
             <option value="">Selecione um veículo</option>
-            {vehicles.map(vehicle => (
+            {vehicles.map((vehicle) => (
               <option key={vehicle.id} value={vehicle.id}>
                 {vehicle.model} - {vehicle.plate}
               </option>
@@ -574,7 +637,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ vehicles, expense, onSubmit, 
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             required
           >
-            {Object.values(ExpenseType).map(type => (
+            {Object.values(ExpenseType).map((type) => (
               <option key={type} value={type}>
                 {type === 'fuel' && 'Abastecimento'}
                 {type === 'maintenance' && 'Manutenção'}
@@ -658,7 +721,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ vehicles, expense, onSubmit, 
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default Expenses;
+export default Expenses

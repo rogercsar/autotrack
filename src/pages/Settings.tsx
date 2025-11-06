@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useAuthStore } from '../stores/authStore';
-import { UserType } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import { 
-  Bell, 
-  Shield, 
+import React, { useState } from 'react'
+import { useAuthStore } from '../stores/authStore'
+import { UserType } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import {
+  Bell,
+  Shield,
   Palette,
   Database,
   Trash2,
@@ -17,18 +17,18 @@ import {
   CheckCircle,
   X,
   Save,
-  RefreshCw
-} from 'lucide-react';
+  RefreshCw,
+} from 'lucide-react'
 
 const Settings: React.FC = () => {
-  const { user } = useAuthStore();
-  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
-  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
-  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
-  const [isDataModalOpen, setIsDataModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const { user } = useAuthStore()
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState(false)
+  const [isDataModalOpen, setIsDataModalOpen] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-  if (!user) return null;
+  if (!user) return null
 
   const settingsCategories = [
     {
@@ -37,7 +37,7 @@ const Settings: React.FC = () => {
       description: 'Configure como você recebe notificações',
       icon: Bell,
       color: 'bg-blue-100 text-blue-600',
-      onClick: () => setIsNotificationModalOpen(true)
+      onClick: () => setIsNotificationModalOpen(true),
     },
     {
       id: 'privacy',
@@ -45,7 +45,7 @@ const Settings: React.FC = () => {
       description: 'Gerencie sua privacidade e configurações de segurança',
       icon: Shield,
       color: 'bg-green-100 text-green-600',
-      onClick: () => setIsPrivacyModalOpen(true)
+      onClick: () => setIsPrivacyModalOpen(true),
     },
     {
       id: 'appearance',
@@ -53,7 +53,7 @@ const Settings: React.FC = () => {
       description: 'Personalize a aparência da aplicação',
       icon: Palette,
       color: 'bg-purple-100 text-purple-600',
-      onClick: () => setIsThemeModalOpen(true)
+      onClick: () => setIsThemeModalOpen(true),
     },
     {
       id: 'data',
@@ -61,25 +61,25 @@ const Settings: React.FC = () => {
       description: 'Gerencie seus dados e backups',
       icon: Database,
       color: 'bg-orange-100 text-orange-600',
-      onClick: () => setIsDataModalOpen(true)
-    }
-  ];
+      onClick: () => setIsDataModalOpen(true),
+    },
+  ]
 
   const handleExportData = () => {
     // Implementar exportação de dados
-    console.log('Exportando dados...');
-  };
+    console.log('Exportando dados...')
+  }
 
   const handleImportData = () => {
     // Implementar importação de dados
-    console.log('Importando dados...');
-  };
+    console.log('Importando dados...')
+  }
 
   const handleDeleteAccount = () => {
     // Implementar exclusão de conta
-    console.log('Excluindo conta...');
-    setIsDeleteModalOpen(false);
-  };
+    console.log('Excluindo conta...')
+    setIsDeleteModalOpen(false)
+  }
 
   return (
     <div className="space-y-6">
@@ -100,7 +100,7 @@ const Settings: React.FC = () => {
       {/* Categorias de configurações */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {settingsCategories.map((category) => {
-          const Icon = category.icon;
+          const Icon = category.icon
           return (
             <Card
               key={category.id}
@@ -121,13 +121,15 @@ const Settings: React.FC = () => {
                 </div>
               </div>
             </Card>
-          );
+          )
         })}
       </div>
 
       {/* Configurações avançadas */}
       <Card>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Configurações Avançadas</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Configurações Avançadas
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button
             variant="outline"
@@ -158,7 +160,9 @@ const Settings: React.FC = () => {
 
       {/* Informações da conta */}
       <Card>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Informações da Conta</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Informações da Conta
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Tipo de Usuário</p>
@@ -198,7 +202,9 @@ const Settings: React.FC = () => {
         title="Configurações de Notificação"
         size="lg"
       >
-        <NotificationSettings onClose={() => setIsNotificationModalOpen(false)} />
+        <NotificationSettings
+          onClose={() => setIsNotificationModalOpen(false)}
+        />
       </Modal>
 
       {/* Modal de privacidade */}
@@ -244,15 +250,17 @@ const Settings: React.FC = () => {
         />
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente de configurações de notificação
 interface NotificationSettingsProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
-const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) => {
+const NotificationSettings: React.FC<NotificationSettingsProps> = ({
+  onClose,
+}) => {
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -261,30 +269,34 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
     maintenanceReminders: true,
     groupUpdates: true,
     emergencyAlerts: true,
-    marketingEmails: false
-  });
+    marketingEmails: false,
+  })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setSettings(prev => ({
+    const { name, checked } = e.target
+    setSettings((prev) => ({
       ...prev,
-      [name]: checked
-    }));
-  };
+      [name]: checked,
+    }))
+  }
 
   const handleSave = () => {
     // Implementar salvamento das configurações
-    console.log('Salvando configurações de notificação:', settings);
-    onClose();
-  };
+    console.log('Salvando configurações de notificação:', settings)
+    onClose()
+  }
 
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Notificações por Email</h4>
-            <p className="text-sm text-gray-500">Receber notificações por email</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Notificações por Email
+            </h4>
+            <p className="text-sm text-gray-500">
+              Receber notificações por email
+            </p>
           </div>
           <input
             type="checkbox"
@@ -297,8 +309,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Notificações Push</h4>
-            <p className="text-sm text-gray-500">Receber notificações no navegador</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Notificações Push
+            </h4>
+            <p className="text-sm text-gray-500">
+              Receber notificações no navegador
+            </p>
           </div>
           <input
             type="checkbox"
@@ -311,8 +327,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Notificações SMS</h4>
-            <p className="text-sm text-gray-500">Receber notificações por SMS</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Notificações SMS
+            </h4>
+            <p className="text-sm text-gray-500">
+              Receber notificações por SMS
+            </p>
           </div>
           <input
             type="checkbox"
@@ -324,12 +344,18 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
         </div>
 
         <div className="border-t border-gray-200 pt-4">
-          <h4 className="text-sm font-medium text-gray-900 mb-3">Tipos de Notificação</h4>
+          <h4 className="text-sm font-medium text-gray-900 mb-3">
+            Tipos de Notificação
+          </h4>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h5 className="text-sm font-medium text-gray-900">Alertas de Despesas</h5>
-                <p className="text-sm text-gray-500">Notificar sobre despesas altas</p>
+                <h5 className="text-sm font-medium text-gray-900">
+                  Alertas de Despesas
+                </h5>
+                <p className="text-sm text-gray-500">
+                  Notificar sobre despesas altas
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -342,8 +368,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
             <div className="flex items-center justify-between">
               <div>
-                <h5 className="text-sm font-medium text-gray-900">Lembretes de Manutenção</h5>
-                <p className="text-sm text-gray-500">Lembrar sobre manutenções programadas</p>
+                <h5 className="text-sm font-medium text-gray-900">
+                  Lembretes de Manutenção
+                </h5>
+                <p className="text-sm text-gray-500">
+                  Lembrar sobre manutenções programadas
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -356,8 +386,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
             <div className="flex items-center justify-between">
               <div>
-                <h5 className="text-sm font-medium text-gray-900">Atualizações de Grupo</h5>
-                <p className="text-sm text-gray-500">Notificar sobre mudanças nos grupos</p>
+                <h5 className="text-sm font-medium text-gray-900">
+                  Atualizações de Grupo
+                </h5>
+                <p className="text-sm text-gray-500">
+                  Notificar sobre mudanças nos grupos
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -370,8 +404,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
             <div className="flex items-center justify-between">
               <div>
-                <h5 className="text-sm font-medium text-gray-900">Alertas de Emergência</h5>
-                <p className="text-sm text-gray-500">Notificar sobre alertas de emergência</p>
+                <h5 className="text-sm font-medium text-gray-900">
+                  Alertas de Emergência
+                </h5>
+                <p className="text-sm text-gray-500">
+                  Notificar sobre alertas de emergência
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -384,8 +422,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
 
             <div className="flex items-center justify-between">
               <div>
-                <h5 className="text-sm font-medium text-gray-900">Emails de Marketing</h5>
-                <p className="text-sm text-gray-500">Receber ofertas e novidades</p>
+                <h5 className="text-sm font-medium text-gray-900">
+                  Emails de Marketing
+                </h5>
+                <p className="text-sm text-gray-500">
+                  Receber ofertas e novidades
+                </p>
               </div>
               <input
                 type="checkbox"
@@ -409,12 +451,12 @@ const NotificationSettings: React.FC<NotificationSettingsProps> = ({ onClose }) 
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Componente de configurações de privacidade
 interface PrivacySettingsProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 const PrivacySettings: React.FC<PrivacySettingsProps> = ({ onClose }) => {
@@ -423,21 +465,24 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({ onClose }) => {
     dataSharing: false,
     analytics: true,
     cookies: true,
-    twoFactorAuth: false
-  });
+    twoFactorAuth: false,
+  })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    setSettings(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target
+    setSettings((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
-  };
+      [name]:
+        type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
+    }))
+  }
 
   const handleSave = () => {
-    console.log('Salvando configurações de privacidade:', settings);
-    onClose();
-  };
+    console.log('Salvando configurações de privacidade:', settings)
+    onClose()
+  }
 
   return (
     <div className="space-y-6">
@@ -460,8 +505,12 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({ onClose }) => {
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Compartilhamento de Dados</h4>
-            <p className="text-sm text-gray-500">Permitir compartilhamento de dados para melhorar o serviço</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Compartilhamento de Dados
+            </h4>
+            <p className="text-sm text-gray-500">
+              Permitir compartilhamento de dados para melhorar o serviço
+            </p>
           </div>
           <input
             type="checkbox"
@@ -475,7 +524,9 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({ onClose }) => {
         <div className="flex items-center justify-between">
           <div>
             <h4 className="text-sm font-medium text-gray-900">Analytics</h4>
-            <p className="text-sm text-gray-500">Permitir coleta de dados de uso para analytics</p>
+            <p className="text-sm text-gray-500">
+              Permitir coleta de dados de uso para analytics
+            </p>
           </div>
           <input
             type="checkbox"
@@ -489,7 +540,9 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({ onClose }) => {
         <div className="flex items-center justify-between">
           <div>
             <h4 className="text-sm font-medium text-gray-900">Cookies</h4>
-            <p className="text-sm text-gray-500">Aceitar cookies para melhorar a experiência</p>
+            <p className="text-sm text-gray-500">
+              Aceitar cookies para melhorar a experiência
+            </p>
           </div>
           <input
             type="checkbox"
@@ -502,8 +555,12 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({ onClose }) => {
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Autenticação de Dois Fatores</h4>
-            <p className="text-sm text-gray-500">Adicionar uma camada extra de segurança</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Autenticação de Dois Fatores
+            </h4>
+            <p className="text-sm text-gray-500">
+              Adicionar uma camada extra de segurança
+            </p>
           </div>
           <input
             type="checkbox"
@@ -525,35 +582,39 @@ const PrivacySettings: React.FC<PrivacySettingsProps> = ({ onClose }) => {
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Componente de configurações de tema
 interface ThemeSettingsProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 const ThemeSettings: React.FC<ThemeSettingsProps> = ({ onClose }) => {
-  const [theme, setTheme] = useState('light');
-  const [accentColor, setAccentColor] = useState('blue');
+  const [theme, setTheme] = useState('light')
+  const [accentColor, setAccentColor] = useState('blue')
 
   const themes = [
     { id: 'light', name: 'Claro', description: 'Tema claro padrão' },
     { id: 'dark', name: 'Escuro', description: 'Tema escuro para uso noturno' },
-    { id: 'auto', name: 'Automático', description: 'Segue as configurações do sistema' }
-  ];
+    {
+      id: 'auto',
+      name: 'Automático',
+      description: 'Segue as configurações do sistema',
+    },
+  ]
 
   const colors = [
     { id: 'blue', name: 'Azul', color: 'bg-blue-500' },
     { id: 'green', name: 'Verde', color: 'bg-green-500' },
     { id: 'purple', name: 'Roxo', color: 'bg-purple-500' },
-    { id: 'orange', name: 'Laranja', color: 'bg-orange-500' }
-  ];
+    { id: 'orange', name: 'Laranja', color: 'bg-orange-500' },
+  ]
 
   const handleSave = () => {
-    console.log('Salvando configurações de tema:', { theme, accentColor });
-    onClose();
-  };
+    console.log('Salvando configurações de tema:', { theme, accentColor })
+    onClose()
+  }
 
   return (
     <div className="space-y-6">
@@ -571,8 +632,12 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ onClose }) => {
                 className="text-primary-600 focus:ring-primary-500"
               />
               <div>
-                <p className="text-sm font-medium text-gray-900">{themeOption.name}</p>
-                <p className="text-sm text-gray-500">{themeOption.description}</p>
+                <p className="text-sm font-medium text-gray-900">
+                  {themeOption.name}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {themeOption.description}
+                </p>
               </div>
             </label>
           ))}
@@ -580,7 +645,9 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ onClose }) => {
       </div>
 
       <div>
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Cor de Destaque</h4>
+        <h4 className="text-sm font-medium text-gray-900 mb-3">
+          Cor de Destaque
+        </h4>
         <div className="flex space-x-3">
           {colors.map((color) => (
             <button
@@ -604,32 +671,34 @@ const ThemeSettings: React.FC<ThemeSettingsProps> = ({ onClose }) => {
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Componente de configurações de dados
 interface DataSettingsProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 const DataSettings: React.FC<DataSettingsProps> = ({ onClose }) => {
   const handleExportData = () => {
-    console.log('Exportando dados...');
-  };
+    console.log('Exportando dados...')
+  }
 
   const handleImportData = () => {
-    console.log('Importando dados...');
-  };
+    console.log('Importando dados...')
+  }
 
   const handleDeleteData = () => {
-    console.log('Excluindo dados...');
-  };
+    console.log('Excluindo dados...')
+  }
 
   return (
     <div className="space-y-6">
       <div className="space-y-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-900 mb-2">Exportar Dados</h4>
+          <h4 className="text-sm font-medium text-blue-900 mb-2">
+            Exportar Dados
+          </h4>
           <p className="text-sm text-blue-700 mb-3">
             Baixe uma cópia de todos os seus dados em formato JSON
           </p>
@@ -640,7 +709,9 @@ const DataSettings: React.FC<DataSettingsProps> = ({ onClose }) => {
         </div>
 
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-green-900 mb-2">Importar Dados</h4>
+          <h4 className="text-sm font-medium text-green-900 mb-2">
+            Importar Dados
+          </h4>
           <p className="text-sm text-green-700 mb-3">
             Restaure seus dados a partir de um arquivo de backup
           </p>
@@ -651,11 +722,18 @@ const DataSettings: React.FC<DataSettingsProps> = ({ onClose }) => {
         </div>
 
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-red-900 mb-2">Excluir Dados</h4>
+          <h4 className="text-sm font-medium text-red-900 mb-2">
+            Excluir Dados
+          </h4>
           <p className="text-sm text-red-700 mb-3">
             Exclua permanentemente todos os seus dados da aplicação
           </p>
-          <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={handleDeleteData}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-red-600 hover:text-red-700"
+            onClick={handleDeleteData}
+          >
             <Trash2 className="w-4 h-4 mr-2" />
             Excluir Dados
           </Button>
@@ -668,23 +746,26 @@ const DataSettings: React.FC<DataSettingsProps> = ({ onClose }) => {
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Componente de exclusão de conta
 interface DeleteAccountFormProps {
-  onConfirm: () => void;
-  onCancel: () => void;
+  onConfirm: () => void
+  onCancel: () => void
 }
 
-const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ onConfirm, onCancel }) => {
-  const [confirmText, setConfirmText] = useState('');
-  const [isConfirmed, setIsConfirmed] = useState(false);
+const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({
+  onConfirm,
+  onCancel,
+}) => {
+  const [confirmText, setConfirmText] = useState('')
+  const [isConfirmed, setIsConfirmed] = useState(false)
 
   const handleConfirmChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfirmText(e.target.value);
-    setIsConfirmed(e.target.value === 'EXCLUIR');
-  };
+    setConfirmText(e.target.value)
+    setIsConfirmed(e.target.value === 'EXCLUIR')
+  }
 
   return (
     <div className="space-y-4">
@@ -694,7 +775,8 @@ const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ onConfirm, onCanc
           <div>
             <h4 className="text-sm font-medium text-red-800">Atenção!</h4>
             <p className="text-sm text-red-700 mt-1">
-              Esta ação é irreversível. Todos os seus dados serão excluídos permanentemente.
+              Esta ação é irreversível. Todos os seus dados serão excluídos
+              permanentemente.
             </p>
           </div>
         </div>
@@ -716,17 +798,13 @@ const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ onConfirm, onCanc
           <X className="w-4 h-4 mr-2" />
           Cancelar
         </Button>
-        <Button
-          variant="danger"
-          onClick={onConfirm}
-          disabled={!isConfirmed}
-        >
+        <Button variant="danger" onClick={onConfirm} disabled={!isConfirmed}>
           <Trash2 className="w-4 h-4 mr-2" />
           Excluir Conta
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Settings;
+export default Settings

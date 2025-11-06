@@ -1,15 +1,20 @@
-import React, { useState, useMemo } from 'react';
-import { useAuthStore } from '../../stores/authStore';
-import { mockUsers, mockCompanies, mockVehicles, mockExpenses } from '../../data/mockData';
-import { UserType, Company } from '../../types';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
-import Input from '../../components/ui/Input';
-import { 
-  Users, 
-  Building2, 
-  Car, 
+import React, { useState, useMemo } from 'react'
+import { useAuthStore } from '../../stores/authStore'
+import {
+  mockUsers,
+  mockCompanies,
+  mockVehicles,
+  mockExpenses,
+} from '../../data/mockData'
+import { UserType, Company } from '../../types'
+import Card from '../../components/ui/Card'
+import Button from '../../components/ui/Button'
+import Modal from '../../components/ui/Modal'
+import Input from '../../components/ui/Input'
+import {
+  Users,
+  Building2,
+  Car,
   DollarSign,
   Plus,
   Edit,
@@ -20,40 +25,50 @@ import {
   XCircle,
   MapPin,
   Phone,
-  Star
-} from 'lucide-react';
+  Star,
+} from 'lucide-react'
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuthStore();
-  const [companies, setCompanies] = useState<Company[]>(mockCompanies);
-  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
-  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
-  const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<'all' | 'workshop' | 'dealership'>('all');
-  const [selectedStatus, setSelectedStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const { user } = useAuthStore()
+  const [companies, setCompanies] = useState<Company[]>(mockCompanies)
+  const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false)
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null)
+  const [isEditCompanyModalOpen, setIsEditCompanyModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedType, setSelectedType] = useState<
+    'all' | 'workshop' | 'dealership'
+  >('all')
+  const [selectedStatus, setSelectedStatus] = useState<
+    'all' | 'active' | 'inactive'
+  >('all')
 
   // Filtrar empresas
   const filteredCompanies = useMemo(() => {
-    return companies.filter(company => {
-      const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           company.address.city.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = selectedType === 'all' || company.type === selectedType;
-      const matchesStatus = selectedStatus === 'all' || 
-                           (selectedStatus === 'active' && company.isActive) ||
-                           (selectedStatus === 'inactive' && !company.isActive);
-      return matchesSearch && matchesType && matchesStatus;
-    });
-  }, [companies, searchTerm, selectedType, selectedStatus]);
+    return companies.filter((company) => {
+      const matchesSearch =
+        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.address.city.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesType =
+        selectedType === 'all' || company.type === selectedType
+      const matchesStatus =
+        selectedStatus === 'all' ||
+        (selectedStatus === 'active' && company.isActive) ||
+        (selectedStatus === 'inactive' && !company.isActive)
+      return matchesSearch && matchesType && matchesStatus
+    })
+  }, [companies, searchTerm, selectedType, selectedStatus])
 
   // Estatísticas
   const stats = useMemo(() => {
-    const totalUsers = mockUsers.length;
-    const totalCompanies = companies.length;
-    const activeCompanies = companies.filter(c => c.isActive).length;
-    const totalVehicles = mockVehicles.length;
-    const totalExpenses = mockExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-    const monthlyRevenue = totalExpenses * 0.1; // 10% de comissão
+    const totalUsers = mockUsers.length
+    const totalCompanies = companies.length
+    const activeCompanies = companies.filter((c) => c.isActive).length
+    const totalVehicles = mockVehicles.length
+    const totalExpenses = mockExpenses.reduce(
+      (sum, expense) => sum + expense.amount,
+      0
+    )
+    const monthlyRevenue = totalExpenses * 0.1 // 10% de comissão
 
     return {
       totalUsers,
@@ -61,9 +76,9 @@ const AdminDashboard: React.FC = () => {
       activeCompanies,
       totalVehicles,
       totalExpenses,
-      monthlyRevenue
-    };
-  }, [companies]);
+      monthlyRevenue,
+    }
+  }, [companies])
 
   // Verificar se o usuário é admin
   if (user?.userType !== UserType.ADMIN) {
@@ -81,29 +96,29 @@ const AdminDashboard: React.FC = () => {
           </div>
         </Card>
       </div>
-    );
+    )
   }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+      currency: 'BRL',
+    }).format(value)
+  }
 
   const formatPhone = (phone: string) => {
-    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  };
+    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  }
 
   const getCompanyTypeLabel = (type: string) => {
-    return type === 'workshop' ? 'Oficina' : 'Concessionária';
-  };
+    return type === 'workshop' ? 'Oficina' : 'Concessionária'
+  }
 
   const getCompanyTypeColor = (type: string) => {
-    return type === 'workshop' 
-      ? 'bg-orange-100 text-orange-800' 
-      : 'bg-blue-100 text-blue-800';
-  };
+    return type === 'workshop'
+      ? 'bg-orange-100 text-orange-800'
+      : 'bg-blue-100 text-blue-800'
+  }
 
   const handleAddCompany = (companyData: Partial<Company>) => {
     const newCompany: Company = {
@@ -122,59 +137,61 @@ const AdminDashboard: React.FC = () => {
         state: '',
         zipCode: '',
         latitude: 0,
-        longitude: 0
+        longitude: 0,
       },
       services: companyData.services || [],
       rating: 0,
       isActive: true,
       createdAt: new Date(),
-      updatedAt: new Date()
-    };
+      updatedAt: new Date(),
+    }
 
-    setCompanies([...companies, newCompany]);
-    setIsAddCompanyModalOpen(false);
-  };
+    setCompanies([...companies, newCompany])
+    setIsAddCompanyModalOpen(false)
+  }
 
   const handleEditCompany = (companyData: Partial<Company>) => {
-    if (!editingCompany) return;
+    if (!editingCompany) return
 
-    const updatedCompanies = companies.map(c => 
-      c.id === editingCompany.id 
+    const updatedCompanies = companies.map((c) =>
+      c.id === editingCompany.id
         ? { ...c, ...companyData, updatedAt: new Date() }
         : c
-    );
+    )
 
-    setCompanies(updatedCompanies);
-    setIsEditCompanyModalOpen(false);
-    setEditingCompany(null);
-  };
+    setCompanies(updatedCompanies)
+    setIsEditCompanyModalOpen(false)
+    setEditingCompany(null)
+  }
 
   const handleDeleteCompany = (companyId: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta empresa?')) {
-      setCompanies(companies.filter(c => c.id !== companyId));
+      setCompanies(companies.filter((c) => c.id !== companyId))
     }
-  };
+  }
 
   const handleToggleCompanyStatus = (companyId: string) => {
-    const updatedCompanies = companies.map(c => 
-      c.id === companyId 
+    const updatedCompanies = companies.map((c) =>
+      c.id === companyId
         ? { ...c, isActive: !c.isActive, updatedAt: new Date() }
         : c
-    );
-    setCompanies(updatedCompanies);
-  };
+    )
+    setCompanies(updatedCompanies)
+  }
 
   const openEditModal = (company: Company) => {
-    setEditingCompany(company);
-    setIsEditCompanyModalOpen(true);
-  };
+    setEditingCompany(company)
+    setIsEditCompanyModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Painel Administrativo</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Painel Administrativo
+          </h1>
           <p className="text-gray-600 mt-1">
             Gerencie empresas, usuários e monitore a plataforma
           </p>
@@ -194,7 +211,9 @@ const AdminDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Usuários</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.totalUsers}
+              </p>
             </div>
           </div>
         </Card>
@@ -220,7 +239,9 @@ const AdminDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Veículos</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalVehicles}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.totalVehicles}
+              </p>
             </div>
           </div>
         </Card>
@@ -231,7 +252,9 @@ const AdminDashboard: React.FC = () => {
               <DollarSign className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Receita Mensal</p>
+              <p className="text-sm font-medium text-gray-600">
+                Receita Mensal
+              </p>
               <p className="text-2xl font-bold text-gray-900">
                 {formatCurrency(stats.monthlyRevenue)}
               </p>
@@ -255,7 +278,11 @@ const AdminDashboard: React.FC = () => {
 
           <select
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value as 'all' | 'workshop' | 'dealership')}
+            onChange={(e) =>
+              setSelectedType(
+                e.target.value as 'all' | 'workshop' | 'dealership'
+              )
+            }
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="all">Todos os tipos</option>
@@ -265,7 +292,9 @@ const AdminDashboard: React.FC = () => {
 
           <select
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value as 'all' | 'active' | 'inactive')}
+            onChange={(e) =>
+              setSelectedStatus(e.target.value as 'all' | 'active' | 'inactive')
+            }
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="all">Todos os status</option>
@@ -289,14 +318,15 @@ const AdminDashboard: React.FC = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Nenhuma empresa encontrada
               </h3>
-              <p className="text-gray-500">
-                Tente ajustar os filtros de busca
-              </p>
+              <p className="text-gray-500">Tente ajustar os filtros de busca</p>
             </div>
           </Card>
         ) : (
           filteredCompanies.map((company) => (
-            <Card key={company.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={company.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <div className="flex items-start space-x-4">
                 {/* Logo da empresa */}
                 <div className="flex-shrink-0">
@@ -321,18 +351,22 @@ const AdminDashboard: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-900 truncate">
                           {company.name}
                         </h3>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCompanyTypeColor(company.type)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCompanyTypeColor(company.type)}`}
+                        >
                           {getCompanyTypeLabel(company.type)}
                         </span>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          company.isActive 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            company.isActive
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
                           {company.isActive ? 'Ativa' : 'Inativa'}
                         </span>
                       </div>
-                      
+
                       <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                         {company.description}
                       </p>
@@ -417,35 +451,41 @@ const AdminDashboard: React.FC = () => {
       <Modal
         isOpen={isAddCompanyModalOpen || isEditCompanyModalOpen}
         onClose={() => {
-          setIsAddCompanyModalOpen(false);
-          setIsEditCompanyModalOpen(false);
-          setEditingCompany(null);
+          setIsAddCompanyModalOpen(false)
+          setIsEditCompanyModalOpen(false)
+          setEditingCompany(null)
         }}
-        title={isAddCompanyModalOpen ? "Adicionar Empresa" : "Editar Empresa"}
+        title={isAddCompanyModalOpen ? 'Adicionar Empresa' : 'Editar Empresa'}
         size="lg"
       >
         <CompanyForm
           company={editingCompany}
-          onSubmit={isAddCompanyModalOpen ? handleAddCompany : handleEditCompany}
+          onSubmit={
+            isAddCompanyModalOpen ? handleAddCompany : handleEditCompany
+          }
           onCancel={() => {
-            setIsAddCompanyModalOpen(false);
-            setIsEditCompanyModalOpen(false);
-            setEditingCompany(null);
+            setIsAddCompanyModalOpen(false)
+            setIsEditCompanyModalOpen(false)
+            setEditingCompany(null)
           }}
         />
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente do formulário de empresa
 interface CompanyFormProps {
-  company?: Company | null;
-  onSubmit: (data: Partial<Company>) => void;
-  onCancel: () => void;
+  company?: Company | null
+  onSubmit: (data: Partial<Company>) => void
+  onCancel: () => void
 }
 
-const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSubmit, onCancel }) => {
+const CompanyForm: React.FC<CompanyFormProps> = ({
+  company,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     name: company?.name || '',
     type: company?.type || 'workshop',
@@ -463,13 +503,13 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSubmit, onCancel }
     longitude: company?.address?.longitude || 0,
     services: company?.services || [],
     rating: company?.rating || 0,
-    isActive: company?.isActive ?? true
-  });
+    isActive: company?.isActive ?? true,
+  })
 
-  const [newService, setNewService] = useState('');
+  const [newService, setNewService] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     onSubmit({
       name: formData.name,
       type: formData.type,
@@ -485,38 +525,42 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSubmit, onCancel }
         state: formData.state,
         zipCode: formData.zipCode,
         latitude: formData.latitude,
-        longitude: formData.longitude
+        longitude: formData.longitude,
       },
       services: formData.services,
       rating: formData.rating,
-      isActive: formData.isActive
-    });
-  };
+      isActive: formData.isActive,
+    })
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleAddService = () => {
     if (newService.trim()) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        services: [...prev.services, newService.trim()]
-      }));
-      setNewService('');
+        services: [...prev.services, newService.trim()],
+      }))
+      setNewService('')
     }
-  };
+  }
 
   const handleRemoveService = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      services: prev.services.filter((_, i) => i !== index)
-    }));
-  };
+      services: prev.services.filter((_, i) => i !== index),
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -651,7 +695,9 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSubmit, onCancel }
               placeholder="Adicionar serviço"
               value={newService}
               onChange={(e) => setNewService(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddService())}
+              onKeyPress={(e) =>
+                e.key === 'Enter' && (e.preventDefault(), handleAddService())
+              }
             />
             <Button type="button" onClick={handleAddService}>
               Adicionar
@@ -686,7 +732,7 @@ const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSubmit, onCancel }
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default AdminDashboard;
+export default AdminDashboard

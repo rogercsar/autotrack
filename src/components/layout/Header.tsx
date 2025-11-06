@@ -1,44 +1,54 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
-import { User, Bell, Settings, LogOut, Menu, X, Car } from 'lucide-react';
-import NotificationModal from '../NotificationModal';
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../stores/authStore'
+import { User, Bell, Settings, LogOut, Menu, X, Car } from 'lucide-react'
+import NotificationModal from '../NotificationModal'
 
 interface HeaderProps {
-  onMenuToggle: () => void;
-  isMenuOpen: boolean;
+  onMenuToggle: () => void
+  isMenuOpen: boolean
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen }) => {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const { user, logout } = useAuthStore()
+  const navigate = useNavigate()
+  const [showUserMenu, setShowUserMenu] = useState(false)
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+    logout()
+    navigate('/login')
+  }
 
   const getUserTypeLabel = (userType: string) => {
     switch (userType) {
-      case 'basic': return 'Básico';
-      case 'advanced': return 'Avançado';
-      case 'pro': return 'Pro';
-      case 'admin': return 'Admin';
-      default: return userType;
+      case 'basic':
+        return 'Básico'
+      case 'advanced':
+        return 'Avançado'
+      case 'pro':
+        return 'Pro'
+      case 'admin':
+        return 'Admin'
+      default:
+        return userType
     }
-  };
+  }
 
   const getUserTypeColor = (userType: string) => {
     switch (userType) {
-      case 'basic': return 'bg-gray-100 text-gray-800';
-      case 'advanced': return 'bg-blue-100 text-blue-800';
-      case 'pro': return 'bg-purple-100 text-purple-800';
-      case 'admin': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'basic':
+        return 'bg-gray-100 text-gray-800'
+      case 'advanced':
+        return 'bg-blue-100 text-blue-800'
+      case 'pro':
+        return 'bg-purple-100 text-purple-800'
+      case 'admin':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
     }
-  };
+  }
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50 lg:z-10">
@@ -52,12 +62,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen }) => {
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            
+
             <Link to="/dashboard" className="flex items-center ml-2 lg:hidden">
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <Car className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <span className="ml-2 text-lg sm:text-xl font-bold text-gray-900">AutoTrack</span>
+              <span className="ml-2 text-lg sm:text-xl font-bold text-gray-900">
+                AutoTrack
+              </span>
             </Link>
           </div>
 
@@ -98,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen }) => {
           {/* Ações do usuário */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             {/* Notificações */}
-            <button 
+            <button
               onClick={() => setIsNotificationModalOpen(true)}
               className="p-1.5 sm:p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-md relative"
             >
@@ -124,8 +136,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen }) => {
                   </div>
                 )}
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-gray-900 truncate max-w-32">{user?.name}</p>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getUserTypeColor(user?.userType || '')}`}>
+                  <p className="text-sm font-medium text-gray-900 truncate max-w-32">
+                    {user?.name}
+                  </p>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getUserTypeColor(user?.userType || '')}`}
+                  >
                     {getUserTypeLabel(user?.userType || '')}
                   </span>
                 </div>
@@ -170,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuToggle, isMenuOpen }) => {
         onClose={() => setIsNotificationModalOpen(false)}
       />
     </header>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

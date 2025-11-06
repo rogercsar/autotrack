@@ -1,12 +1,7 @@
 import { create } from 'zustand'
 import { User, RegisterData, UserType } from '../types'
 import toast from 'react-hot-toast'
-import {
-  signInWithPassword,
-  signUp,
-  signOut,
-  getUser,
-} from '../api/auth'
+import { signInWithPassword, signUp, signOut, getUser } from '../api/auth'
 import { getProfileById, updateUserType } from '../services/profileService'
 
 interface AuthState {

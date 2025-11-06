@@ -5,6 +5,7 @@ AutoTrack é uma aplicação web multiplataforma para gestão de veículos que c
 ## 🚀 Funcionalidades
 
 ### Para Usuários
+
 - **Sistema de Autenticação**: Login e cadastro com diferentes tipos de usuário
 - **Gestão de Veículos**: Cadastro e gerenciamento de múltiplos veículos
 - **Controle de Despesas**: Registro e acompanhamento de gastos veiculares
@@ -14,11 +15,13 @@ AutoTrack é uma aplicação web multiplataforma para gestão de veículos que c
 - **Relatórios e Exportação**: Geração de relatórios em PDF e compartilhamento
 
 ### Tipos de Usuário
+
 - **Básico (Gratuito)**: 1 veículo, 1 grupo, funcionalidades básicas
 - **Avançado (R$ 9,90/mês)**: Até 5 veículos, 3 grupos, exportação PDF
 - **Pro (R$ 19,90/mês)**: Veículos ilimitados, grupos ilimitados, relatórios avançados
 
 ### Para Empresas
+
 - **Painel Administrativo**: Cadastro de oficinas e concessionárias
 - **Gestão de Agendamentos**: Controle de solicitações de clientes
 - **Perfil da Empresa**: Edição de informações e serviços
@@ -37,18 +40,21 @@ AutoTrack é uma aplicação web multiplataforma para gestão de veículos que c
 ## 📦 Instalação
 
 ### Pré-requisitos
-- Node.js 16+ 
+
+- Node.js 16+
 - npm ou yarn
 
 ### Passos para instalação
 
 1. **Clone o repositório**
+
    ```bash
    git clone <url-do-repositorio>
    cd autotrack
    ```
 
 2. **Instale as dependências**
+
    ```bash
    npm install
    # ou
@@ -56,6 +62,7 @@ AutoTrack é uma aplicação web multiplataforma para gestão de veículos que c
    ```
 
 3. **Execute a aplicação**
+
    ```bash
    npm start
    # ou
@@ -70,20 +77,24 @@ AutoTrack é uma aplicação web multiplataforma para gestão de veículos que c
 Para testar a aplicação, use as seguintes credenciais:
 
 **Usuário Pro (acesso completo):**
+
 - Email: `joao@email.com`
 - Senha: `123456`
 
 **Usuário Avançado:**
+
 - Email: `maria@email.com`
 - Senha: `123456`
 
 **Usuário Básico:**
+
 - Email: `pedro@email.com`
 - Senha: `123456`
 
 ## 📱 Funcionalidades Implementadas
 
 ### ✅ Autenticação
+
 - [x] Página de login
 - [x] Página de cadastro
 - [x] Sistema de tipos de usuário
@@ -91,6 +102,7 @@ Para testar a aplicação, use as seguintes credenciais:
 - [x] Proteção de rotas
 
 ### ✅ Dashboard
+
 - [x] Resumo de estatísticas
 - [x] Lista de veículos
 - [x] Despesas recentes
@@ -98,6 +110,7 @@ Para testar a aplicação, use as seguintes credenciais:
 - [x] Design responsivo
 
 ### ✅ Gestão de Veículos
+
 - [x] Listagem de veículos
 - [x] Cadastro de veículo
 - [x] Edição de veículo
@@ -106,6 +119,7 @@ Para testar a aplicação, use as seguintes credenciais:
 - [x] Links rápidos para funcionalidades
 
 ### 🚧 Em Desenvolvimento
+
 - [ ] Gestão de despesas
 - [ ] Sistema de grupos
 - [ ] Alertas de emergência
@@ -154,6 +168,7 @@ src/
 Esta aplicação pode se conectar ao Supabase para autenticação e persistência dos dados.
 
 ### Passo a passo
+
 - Crie um projeto no [Supabase](https://supabase.com/).
 - Copie o `Project URL` e a `Anon Key` do seu projeto.
 - Crie um arquivo `.env.local` na raiz baseado em `.env.local.example`:
@@ -165,19 +180,19 @@ Esta aplicação pode se conectar ao Supabase para autenticação e persistênci
 - Reinicie a aplicação (`npm start`).
 
 ### Cliente Supabase
+
 O cliente é inicializado em `src/lib/supabaseClient.ts`:
+
 ```ts
-import { supabase } from './lib/supabaseClient';
+import { supabase } from './lib/supabaseClient'
 
 async function exemplo() {
-  const { data, error } = await supabase
-    .from('vehicles')
-    .select('*')
-    .limit(1);
+  const { data, error } = await supabase.from('vehicles').select('*').limit(1)
 }
 ```
 
 ### Observações
+
 - Em Create React App, variáveis de ambiente no frontend devem começar com `REACT_APP_`.
 - As tabelas possuem RLS (Row Level Security) com políticas para garantir que cada usuário acesse apenas seus dados.
 - O script cria um `profiles` sincronizado com `auth.users` via trigger, facilitando consultas no frontend.
@@ -197,6 +212,7 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 ## 📞 Suporte
 
 Para suporte, entre em contato através de:
+
 - Email: suporte@autotrack.com
 - Issues no GitHub
 

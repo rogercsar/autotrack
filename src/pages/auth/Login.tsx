@@ -1,32 +1,32 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { useAuthStore } from '../../stores/authStore';
-import { LoginData } from '../../types';
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
-import Card from '../../components/ui/Card';
-import { Car, Eye, EyeOff } from 'lucide-react';
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { useAuthStore } from '../../stores/authStore'
+import { LoginData } from '../../types'
+import Button from '../../components/ui/Button'
+import Input from '../../components/ui/Input'
+import Card from '../../components/ui/Card'
+import { Car, Eye, EyeOff } from 'lucide-react'
 
 const Login: React.FC = () => {
-  const { login, isLoading } = useAuthStore();
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  
+  const { login, isLoading } = useAuthStore()
+  const navigate = useNavigate()
+  const [showPassword, setShowPassword] = useState(false)
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginData>();
+  } = useForm<LoginData>()
 
   const onSubmit = async (data: LoginData) => {
     try {
-      await login(data.email, data.password);
-      navigate('/dashboard');
+      await login(data.email, data.password)
+      navigate('/dashboard')
     } catch (error) {
       // O erro já é tratado no contexto de autenticação
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
@@ -50,8 +50,8 @@ const Login: React.FC = () => {
                 required: 'Email é obrigatório',
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Email inválido'
-                }
+                  message: 'Email inválido',
+                },
               })}
               error={errors.email?.message}
             />
@@ -65,8 +65,8 @@ const Login: React.FC = () => {
                   required: 'Senha é obrigatória',
                   minLength: {
                     value: 6,
-                    message: 'Senha deve ter pelo menos 6 caracteres'
-                  }
+                    message: 'Senha deve ter pelo menos 6 caracteres',
+                  },
                 })}
                 error={errors.password?.message}
               />
@@ -85,7 +85,9 @@ const Login: React.FC = () => {
                   type="checkbox"
                   className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
                 />
-                <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
+                <span className="ml-2 text-sm text-gray-600">
+                  Lembrar de mim
+                </span>
               </label>
               <Link
                 to="/forgot-password"
@@ -95,11 +97,7 @@ const Login: React.FC = () => {
               </Link>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={isLoading}
-            >
+            <Button type="submit" className="w-full" isLoading={isLoading}>
               Entrar
             </Button>
           </form>
@@ -130,7 +128,7 @@ const Login: React.FC = () => {
         </Card>*/}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Login;
+export default Login

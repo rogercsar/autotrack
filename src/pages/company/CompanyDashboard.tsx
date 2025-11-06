@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from 'react';
-import { Company, Appointment } from '../../types';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
-import Input from '../../components/ui/Input';
-import { 
-  Building2, 
-  Calendar, 
-  Users, 
+import React, { useState, useMemo } from 'react'
+import { Company, Appointment } from '../../types'
+import Card from '../../components/ui/Card'
+import Button from '../../components/ui/Button'
+import Modal from '../../components/ui/Modal'
+import Input from '../../components/ui/Input'
+import {
+  Building2,
+  Calendar,
+  Users,
   Phone,
   Mail,
   MapPin,
@@ -18,8 +18,8 @@ import {
   Clock,
   Search,
   Filter,
-  Eye
-} from 'lucide-react';
+  Eye,
+} from 'lucide-react'
 
 const CompanyDashboard: React.FC = () => {
   // Dados mockados da empresa logada
@@ -39,14 +39,20 @@ const CompanyDashboard: React.FC = () => {
       state: 'SP',
       zipCode: '01234-567',
       latitude: -23.5505,
-      longitude: -46.6333
+      longitude: -46.6333,
     },
-    services: ['Troca de óleo', 'Revisão geral', 'Freios', 'Suspensão', 'Ar condicionado'],
+    services: [
+      'Troca de óleo',
+      'Revisão geral',
+      'Freios',
+      'Suspensão',
+      'Ar condicionado',
+    ],
     rating: 4.5,
     isActive: true,
     createdAt: new Date('2023-01-01'),
-    updatedAt: new Date('2023-12-01')
-  });
+    updatedAt: new Date('2023-12-01'),
+  })
 
   // Dados mockados de agendamentos
   const [appointments, setAppointments] = useState<Appointment[]>([
@@ -61,7 +67,7 @@ const CompanyDashboard: React.FC = () => {
       description: 'Troca de óleo e filtros do motor',
       status: 'pending',
       createdAt: new Date('2023-12-10'),
-      updatedAt: new Date('2023-12-10')
+      updatedAt: new Date('2023-12-10'),
     },
     {
       id: '2',
@@ -74,7 +80,7 @@ const CompanyDashboard: React.FC = () => {
       description: 'Revisão completa do veículo',
       status: 'confirmed',
       createdAt: new Date('2023-12-11'),
-      updatedAt: new Date('2023-12-11')
+      updatedAt: new Date('2023-12-11'),
     },
     {
       id: '3',
@@ -87,108 +93,124 @@ const CompanyDashboard: React.FC = () => {
       description: 'Troca de pastilhas de freio',
       status: 'completed',
       createdAt: new Date('2023-12-09'),
-      updatedAt: new Date('2023-12-14')
-    }
-  ]);
+      updatedAt: new Date('2023-12-14'),
+    },
+  ])
 
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all');
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null)
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'
+  >('all')
 
   // Filtrar agendamentos
   const filteredAppointments = useMemo(() => {
-    return appointments.filter(appointment => {
-      const matchesSearch = appointment.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           appointment.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [appointments, searchTerm, statusFilter]);
+    return appointments.filter((appointment) => {
+      const matchesSearch =
+        appointment.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        appointment.description.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesStatus =
+        statusFilter === 'all' || appointment.status === statusFilter
+      return matchesSearch && matchesStatus
+    })
+  }, [appointments, searchTerm, statusFilter])
 
   // Estatísticas
   const stats = useMemo(() => {
-    const totalAppointments = appointments.length;
-    const pendingAppointments = appointments.filter(a => a.status === 'pending').length;
-    const confirmedAppointments = appointments.filter(a => a.status === 'confirmed').length;
-    const completedAppointments = appointments.filter(a => a.status === 'completed').length;
-    const todayAppointments = appointments.filter(a => {
-      const appointmentDate = new Date(a.date);
-      const today = new Date();
-      return appointmentDate.toDateString() === today.toDateString();
-    }).length;
+    const totalAppointments = appointments.length
+    const pendingAppointments = appointments.filter(
+      (a) => a.status === 'pending'
+    ).length
+    const confirmedAppointments = appointments.filter(
+      (a) => a.status === 'confirmed'
+    ).length
+    const completedAppointments = appointments.filter(
+      (a) => a.status === 'completed'
+    ).length
+    const todayAppointments = appointments.filter((a) => {
+      const appointmentDate = new Date(a.date)
+      const today = new Date()
+      return appointmentDate.toDateString() === today.toDateString()
+    }).length
 
     return {
       totalAppointments,
       pendingAppointments,
       confirmedAppointments,
       completedAppointments,
-      todayAppointments
-    };
-  }, [appointments]);
+      todayAppointments,
+    }
+  }, [appointments])
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
-  };
+      year: 'numeric',
+    }).format(new Date(date))
+  }
 
   const formatPhone = (phone: string) => {
-    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  };
+    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  }
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       pending: 'Pendente',
       confirmed: 'Confirmado',
       completed: 'Concluído',
-      cancelled: 'Cancelado'
-    };
-    return labels[status] || status;
-  };
+      cancelled: 'Cancelado',
+    }
+    return labels[status] || status
+  }
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-blue-100 text-blue-800',
       completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+      cancelled: 'bg-red-100 text-red-800',
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
 
-  const handleUpdateAppointmentStatus = (appointmentId: string, newStatus: string) => {
-    const updatedAppointments = appointments.map(a => 
-      a.id === appointmentId 
+  const handleUpdateAppointmentStatus = (
+    appointmentId: string,
+    newStatus: string
+  ) => {
+    const updatedAppointments = appointments.map((a) =>
+      a.id === appointmentId
         ? { ...a, status: newStatus as any, updatedAt: new Date() }
         : a
-    );
-    setAppointments(updatedAppointments);
-  };
+    )
+    setAppointments(updatedAppointments)
+  }
 
   const handleUpdateCompany = (companyData: Partial<Company>) => {
-    setCompany(prev => ({
+    setCompany((prev) => ({
       ...prev,
       ...companyData,
-      updatedAt: new Date()
-    }));
-    setIsEditModalOpen(false);
-  };
+      updatedAt: new Date(),
+    }))
+    setIsEditModalOpen(false)
+  }
 
   const openAppointmentModal = (appointment: Appointment) => {
-    setSelectedAppointment(appointment);
-    setIsAppointmentModalOpen(true);
-  };
+    setSelectedAppointment(appointment)
+    setIsAppointmentModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Painel da Empresa</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Painel da Empresa
+          </h1>
           <p className="text-gray-600 mt-1">
             Gerencie agendamentos e informações da sua empresa
           </p>
@@ -214,7 +236,9 @@ const CompanyDashboard: React.FC = () => {
             </div>
           )}
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{company.name}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {company.name}
+            </h2>
             <p className="text-gray-600 mb-4">{company.description}</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center text-sm text-gray-600">
@@ -243,7 +267,9 @@ const CompanyDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalAppointments}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.totalAppointments}
+              </p>
             </div>
           </div>
         </Card>
@@ -255,7 +281,9 @@ const CompanyDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pendentes</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.pendingAppointments}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.pendingAppointments}
+              </p>
             </div>
           </div>
         </Card>
@@ -267,7 +295,9 @@ const CompanyDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Confirmados</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.confirmedAppointments}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.confirmedAppointments}
+              </p>
             </div>
           </div>
         </Card>
@@ -279,7 +309,9 @@ const CompanyDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Concluídos</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.completedAppointments}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.completedAppointments}
+              </p>
             </div>
           </div>
         </Card>
@@ -291,7 +323,9 @@ const CompanyDashboard: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Hoje</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.todayAppointments}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {stats.todayAppointments}
+              </p>
             </div>
           </div>
         </Card>
@@ -338,14 +372,15 @@ const CompanyDashboard: React.FC = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Nenhum agendamento encontrado
               </h3>
-              <p className="text-gray-500">
-                Tente ajustar os filtros de busca
-              </p>
+              <p className="text-gray-500">Tente ajustar os filtros de busca</p>
             </div>
           </Card>
         ) : (
           filteredAppointments.map((appointment) => (
-            <Card key={appointment.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={appointment.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-4">
                   <div className="p-2 bg-gray-100 rounded-lg">
@@ -356,11 +391,13 @@ const CompanyDashboard: React.FC = () => {
                       <h3 className="text-lg font-semibold text-gray-900">
                         {appointment.service}
                       </h3>
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}
+                      >
                         {getStatusLabel(appointment.status)}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-gray-600 mb-2">
                       {appointment.description}
                     </p>
@@ -377,7 +414,7 @@ const CompanyDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="ghost"
@@ -386,13 +423,18 @@ const CompanyDashboard: React.FC = () => {
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
-                  
+
                   {appointment.status === 'pending' && (
                     <>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleUpdateAppointmentStatus(appointment.id, 'confirmed')}
+                        onClick={() =>
+                          handleUpdateAppointmentStatus(
+                            appointment.id,
+                            'confirmed'
+                          )
+                        }
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Confirmar
@@ -400,18 +442,28 @@ const CompanyDashboard: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleUpdateAppointmentStatus(appointment.id, 'cancelled')}
+                        onClick={() =>
+                          handleUpdateAppointmentStatus(
+                            appointment.id,
+                            'cancelled'
+                          )
+                        }
                       >
                         <XCircle className="w-4 h-4" />
                       </Button>
                     </>
                   )}
-                  
+
                   {appointment.status === 'confirmed' && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleUpdateAppointmentStatus(appointment.id, 'completed')}
+                      onClick={() =>
+                        handleUpdateAppointmentStatus(
+                          appointment.id,
+                          'completed'
+                        )
+                      }
                     >
                       <CheckCircle className="w-4 h-4 mr-1" />
                       Concluir
@@ -442,8 +494,8 @@ const CompanyDashboard: React.FC = () => {
       <Modal
         isOpen={isAppointmentModalOpen}
         onClose={() => {
-          setIsAppointmentModalOpen(false);
-          setSelectedAppointment(null);
+          setIsAppointmentModalOpen(false)
+          setSelectedAppointment(null)
         }}
         title="Detalhes do Agendamento"
         size="md"
@@ -452,29 +504,33 @@ const CompanyDashboard: React.FC = () => {
           <AppointmentDetails
             appointment={selectedAppointment}
             onStatusChange={(newStatus) => {
-              handleUpdateAppointmentStatus(selectedAppointment.id, newStatus);
-              setIsAppointmentModalOpen(false);
-              setSelectedAppointment(null);
+              handleUpdateAppointmentStatus(selectedAppointment.id, newStatus)
+              setIsAppointmentModalOpen(false)
+              setSelectedAppointment(null)
             }}
             onClose={() => {
-              setIsAppointmentModalOpen(false);
-              setSelectedAppointment(null);
+              setIsAppointmentModalOpen(false)
+              setSelectedAppointment(null)
             }}
           />
         )}
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente de edição da empresa
 interface CompanyEditFormProps {
-  company: Company;
-  onSubmit: (data: Partial<Company>) => void;
-  onCancel: () => void;
+  company: Company
+  onSubmit: (data: Partial<Company>) => void
+  onCancel: () => void
 }
 
-const CompanyEditForm: React.FC<CompanyEditFormProps> = ({ company, onSubmit, onCancel }) => {
+const CompanyEditForm: React.FC<CompanyEditFormProps> = ({
+  company,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     name: company.name,
     description: company.description,
@@ -486,14 +542,14 @@ const CompanyEditForm: React.FC<CompanyEditFormProps> = ({ company, onSubmit, on
     city: company.address.city,
     state: company.address.state,
     zipCode: company.address.zipCode,
-    logo: company.logo || ''
-  });
+    logo: company.logo || '',
+  })
 
-  const [services, setServices] = useState(company.services);
-  const [newService, setNewService] = useState('');
+  const [services, setServices] = useState(company.services)
+  const [newService, setNewService] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     onSubmit({
       name: formData.name,
       description: formData.description,
@@ -506,31 +562,33 @@ const CompanyEditForm: React.FC<CompanyEditFormProps> = ({ company, onSubmit, on
         neighborhood: formData.neighborhood,
         city: formData.city,
         state: formData.state,
-        zipCode: formData.zipCode
+        zipCode: formData.zipCode,
       },
       logo: formData.logo,
-      services: services
-    });
-  };
+      services: services,
+    })
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleAddService = () => {
     if (newService.trim()) {
-      setServices(prev => [...prev, newService.trim()]);
-      setNewService('');
+      setServices((prev) => [...prev, newService.trim()])
+      setNewService('')
     }
-  };
+  }
 
   const handleRemoveService = (index: number) => {
-    setServices(prev => prev.filter((_, i) => i !== index));
-  };
+    setServices((prev) => prev.filter((_, i) => i !== index))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -635,7 +693,9 @@ const CompanyEditForm: React.FC<CompanyEditFormProps> = ({ company, onSubmit, on
               placeholder="Adicionar serviço"
               value={newService}
               onChange={(e) => setNewService(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddService())}
+              onKeyPress={(e) =>
+                e.key === 'Enter' && (e.preventDefault(), handleAddService())
+              }
             />
             <Button type="button" onClick={handleAddService}>
               Adicionar
@@ -665,57 +725,61 @@ const CompanyEditForm: React.FC<CompanyEditFormProps> = ({ company, onSubmit, on
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">
-          Salvar Alterações
-        </Button>
+        <Button type="submit">Salvar Alterações</Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Componente de detalhes do agendamento
 interface AppointmentDetailsProps {
-  appointment: Appointment;
-  onStatusChange: (status: string) => void;
-  onClose: () => void;
+  appointment: Appointment
+  onStatusChange: (status: string) => void
+  onClose: () => void
 }
 
-const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment, onStatusChange, onClose }) => {
+const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({
+  appointment,
+  onStatusChange,
+  onClose,
+}) => {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
-  };
+      minute: '2-digit',
+    }).format(new Date(date))
+  }
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       pending: 'Pendente',
       confirmed: 'Confirmado',
       completed: 'Concluído',
-      cancelled: 'Cancelado'
-    };
-    return labels[status] || status;
-  };
+      cancelled: 'Cancelado',
+    }
+    return labels[status] || status
+  }
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
       confirmed: 'bg-blue-100 text-blue-800',
       completed: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+      cancelled: 'bg-red-100 text-red-800',
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Informações do Agendamento</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Informações do Agendamento
+          </h3>
           <div className="space-y-2">
             <div>
               <p className="text-sm font-medium text-gray-600">Serviço</p>
@@ -727,11 +791,15 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment, on
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Data e Hora</p>
-              <p className="text-gray-900">{formatDate(appointment.date)} às {appointment.time}</p>
+              <p className="text-gray-900">
+                {formatDate(appointment.date)} às {appointment.time}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Status</p>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}>
+              <span
+                className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(appointment.status)}`}
+              >
                 {getStatusLabel(appointment.status)}
               </span>
             </div>
@@ -739,7 +807,9 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment, on
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Informações do Cliente</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Informações do Cliente
+          </h3>
           <div className="space-y-2">
             <div>
               <p className="text-sm font-medium text-gray-600">ID do Cliente</p>
@@ -751,7 +821,9 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment, on
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Solicitado em</p>
-              <p className="text-gray-900">{formatDate(appointment.createdAt)}</p>
+              <p className="text-gray-900">
+                {formatDate(appointment.createdAt)}
+              </p>
             </div>
           </div>
         </div>
@@ -784,7 +856,7 @@ const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ appointment, on
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default CompanyDashboard;
+export default CompanyDashboard

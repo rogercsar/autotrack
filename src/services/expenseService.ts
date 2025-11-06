@@ -10,7 +10,14 @@ import { Expense, ExpenseType } from '../types'
 type ExpenseRow = {
   id: string
   vehicle_id: string
-  type: 'fuel' | 'ticket' | 'maintenance' | 'insurance' | 'ipva' | 'licensing' | 'other'
+  type:
+    | 'fuel'
+    | 'ticket'
+    | 'maintenance'
+    | 'insurance'
+    | 'ipva'
+    | 'licensing'
+    | 'other'
   description: string
   amount: string
   date: string
@@ -53,7 +60,9 @@ export async function createExpense(
 
 export async function updateExpense(
   id: string,
-  changes: Partial<Omit<Expense, 'id' | 'vehicleId' | 'createdAt' | 'updatedAt'>>
+  changes: Partial<
+    Omit<Expense, 'id' | 'vehicleId' | 'createdAt' | 'updatedAt'>
+  >
 ) {
   const { expense, error } = await updateExpenseFromApi(id, changes)
   if (error || !expense) return { expense: null, error }

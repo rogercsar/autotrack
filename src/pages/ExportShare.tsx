@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { useAuthStore } from '../stores/authStore';
-import { getUserVehicles, mockExpenses } from '../data/mockData';
-import { Vehicle, VehicleExportData, UserType } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import { 
-  FileText, 
-  Download, 
-  Share2, 
-  Mail, 
-  MessageCircle, 
+import React, { useState } from 'react'
+import { useAuthStore } from '../stores/authStore'
+import { getUserVehicles, mockExpenses } from '../data/mockData'
+import { Vehicle, VehicleExportData, UserType } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import {
+  FileText,
+  Download,
+  Share2,
+  Mail,
+  MessageCircle,
   QrCode,
   Eye,
   Copy,
@@ -20,38 +20,39 @@ import {
   DollarSign,
   Calendar,
   TrendingUp,
-  BarChart3
-} from 'lucide-react';
-import jsPDF from 'jspdf';
-import QRCode from 'qrcode';
+  BarChart3,
+} from 'lucide-react'
+import jsPDF from 'jspdf'
+import QRCode from 'qrcode'
 
 const ExportShare: React.FC = () => {
-  const { user } = useAuthStore();
-  const [vehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''));
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [shareUrl, setShareUrl] = useState('');
-  const [qrCodeUrl, setQrCodeUrl] = useState('');
-  const [copied, setCopied] = useState(false);
+  const { user } = useAuthStore()
+  const [vehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''))
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const [shareUrl, setShareUrl] = useState('')
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [copied, setCopied] = useState(false)
 
   // Verificar se o usuário pode exportar
-  const canExport = user?.userType === UserType.ADVANCED || user?.userType === UserType.PRO;
+  const canExport =
+    user?.userType === UserType.ADVANCED || user?.userType === UserType.PRO
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+      currency: 'BRL',
+    }).format(value)
+  }
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
-  };
+      year: 'numeric',
+    }).format(new Date(date))
+  }
 
   const getExpenseTypeLabel = (type: string) => {
     const types: Record<string, string> = {
@@ -61,217 +62,269 @@ const ExportShare: React.FC = () => {
       insurance: 'Seguro',
       ipva: 'IPVA',
       licensing: 'Licenciamento',
-      other: 'Outros'
-    };
-    return types[type] || type;
-  };
+      other: 'Outros',
+    }
+    return types[type] || type
+  }
 
   const generateExportData = (vehicle: Vehicle): VehicleExportData => {
-    const expenses = mockExpenses.filter(e => e.vehicleId === vehicle.id);
-    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-    
+    const expenses = mockExpenses.filter((e) => e.vehicleId === vehicle.id)
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
+
     // Calcular média mensal dos últimos 6 meses
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    
-    const recentExpenses = expenses.filter(e => new Date(e.date) >= sixMonthsAgo);
-    const averageMonthlyExpense = recentExpenses.length > 0 
-      ? recentExpenses.reduce((sum, e) => sum + e.amount, 0) / 6 
-      : 0;
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+    const recentExpenses = expenses.filter(
+      (e) => new Date(e.date) >= sixMonthsAgo
+    )
+    const averageMonthlyExpense =
+      recentExpenses.length > 0
+        ? recentExpenses.reduce((sum, e) => sum + e.amount, 0) / 6
+        : 0
 
     return {
       vehicle,
       expenses,
       totalExpenses,
       averageMonthlyExpense,
-      exportDate: new Date()
-    };
-  };
+      exportDate: new Date(),
+    }
+  }
 
   const generatePDF = async (vehicle: Vehicle) => {
     if (!canExport) {
-      alert('Exportação PDF disponível apenas para usuários Avançado e Pro.');
-      return;
+      alert('Exportação PDF disponível apenas para usuários Avançado e Pro.')
+      return
     }
 
-    const exportData = generateExportData(vehicle);
-    const pdf = new jsPDF();
-    
+    const exportData = generateExportData(vehicle)
+    const pdf = new jsPDF()
+
     // Configurações
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const margin = 20;
-    let yPosition = margin;
+    const pageWidth = pdf.internal.pageSize.getWidth()
+    const margin = 20
+    let yPosition = margin
 
     // Função para adicionar texto
     const addText = (text: string, x: number, y: number, options: any = {}) => {
-      pdf.setFontSize(options.fontSize || 12);
-      pdf.text(text, x, y);
-    };
+      pdf.setFontSize(options.fontSize || 12)
+      pdf.text(text, x, y)
+    }
 
     // Função para adicionar linha
     const addLine = (x1: number, y1: number, x2: number, y2: number) => {
-      pdf.line(x1, y1, x2, y2);
-    };
+      pdf.line(x1, y1, x2, y2)
+    }
 
     // Cabeçalho
-    addText('AutoTrack - Relatório de Veículo', margin, yPosition, { fontSize: 18 });
-    yPosition += 10;
-    addText(`Gerado em: ${formatDate(exportData.exportDate)}`, margin, yPosition);
-    yPosition += 20;
+    addText('AutoTrack - Relatório de Veículo', margin, yPosition, {
+      fontSize: 18,
+    })
+    yPosition += 10
+    addText(
+      `Gerado em: ${formatDate(exportData.exportDate)}`,
+      margin,
+      yPosition
+    )
+    yPosition += 20
 
     // Informações do veículo
-    addText('INFORMAÇÕES DO VEÍCULO', margin, yPosition, { fontSize: 14 });
-    yPosition += 10;
-    addLine(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
+    addText('INFORMAÇÕES DO VEÍCULO', margin, yPosition, { fontSize: 14 })
+    yPosition += 10
+    addLine(margin, yPosition, pageWidth - margin, yPosition)
+    yPosition += 10
 
-    addText(`Modelo: ${vehicle.model}`, margin, yPosition);
-    yPosition += 8;
-    addText(`Placa: ${vehicle.plate}`, margin, yPosition);
-    yPosition += 8;
-    addText(`Ano: ${vehicle.year}`, margin, yPosition);
-    yPosition += 8;
-    addText(`Cor: ${vehicle.color}`, margin, yPosition);
-    yPosition += 8;
-    addText(`RENAVAM: ${vehicle.renavam}`, margin, yPosition);
-    yPosition += 20;
+    addText(`Modelo: ${vehicle.model}`, margin, yPosition)
+    yPosition += 8
+    addText(`Placa: ${vehicle.plate}`, margin, yPosition)
+    yPosition += 8
+    addText(`Ano: ${vehicle.year}`, margin, yPosition)
+    yPosition += 8
+    addText(`Cor: ${vehicle.color}`, margin, yPosition)
+    yPosition += 8
+    addText(`RENAVAM: ${vehicle.renavam}`, margin, yPosition)
+    yPosition += 20
 
     // Resumo financeiro
-    addText('RESUMO FINANCEIRO', margin, yPosition, { fontSize: 14 });
-    yPosition += 10;
-    addLine(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
+    addText('RESUMO FINANCEIRO', margin, yPosition, { fontSize: 14 })
+    yPosition += 10
+    addLine(margin, yPosition, pageWidth - margin, yPosition)
+    yPosition += 10
 
-    addText(`Total de Despesas: ${formatCurrency(exportData.totalExpenses)}`, margin, yPosition);
-    yPosition += 8;
-    addText(`Média Mensal (6 meses): ${formatCurrency(exportData.averageMonthlyExpense)}`, margin, yPosition);
-    yPosition += 8;
-    addText(`Total de Registros: ${exportData.expenses.length}`, margin, yPosition);
-    yPosition += 20;
+    addText(
+      `Total de Despesas: ${formatCurrency(exportData.totalExpenses)}`,
+      margin,
+      yPosition
+    )
+    yPosition += 8
+    addText(
+      `Média Mensal (6 meses): ${formatCurrency(exportData.averageMonthlyExpense)}`,
+      margin,
+      yPosition
+    )
+    yPosition += 8
+    addText(
+      `Total de Registros: ${exportData.expenses.length}`,
+      margin,
+      yPosition
+    )
+    yPosition += 20
 
     // Despesas por categoria
-    const expensesByType = exportData.expenses.reduce((acc, expense) => {
-      acc[expense.type] = (acc[expense.type] || 0) + expense.amount;
-      return acc;
-    }, {} as Record<string, number>);
+    const expensesByType = exportData.expenses.reduce(
+      (acc, expense) => {
+        acc[expense.type] = (acc[expense.type] || 0) + expense.amount
+        return acc
+      },
+      {} as Record<string, number>
+    )
 
-    addText('DESPESAS POR CATEGORIA', margin, yPosition, { fontSize: 14 });
-    yPosition += 10;
-    addLine(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 10;
+    addText('DESPESAS POR CATEGORIA', margin, yPosition, { fontSize: 14 })
+    yPosition += 10
+    addLine(margin, yPosition, pageWidth - margin, yPosition)
+    yPosition += 10
 
     Object.entries(expensesByType).forEach(([type, amount]) => {
-      addText(`${getExpenseTypeLabel(type)}: ${formatCurrency(amount)}`, margin, yPosition);
-      yPosition += 8;
-    });
+      addText(
+        `${getExpenseTypeLabel(type)}: ${formatCurrency(amount)}`,
+        margin,
+        yPosition
+      )
+      yPosition += 8
+    })
 
-    yPosition += 10;
+    yPosition += 10
 
     // Lista de despesas
     if (exportData.expenses.length > 0) {
-      addText('HISTÓRICO DE DESPESAS', margin, yPosition, { fontSize: 14 });
-      yPosition += 10;
-      addLine(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 10;
+      addText('HISTÓRICO DE DESPESAS', margin, yPosition, { fontSize: 14 })
+      yPosition += 10
+      addLine(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 10
 
       // Cabeçalho da tabela
-      addText('Data', margin, yPosition, { fontSize: 10 });
-      addText('Tipo', margin + 40, yPosition, { fontSize: 10 });
-      addText('Descrição', margin + 80, yPosition, { fontSize: 10 });
-      addText('Valor', pageWidth - margin - 30, yPosition, { fontSize: 10 });
-      yPosition += 5;
-      addLine(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 8;
+      addText('Data', margin, yPosition, { fontSize: 10 })
+      addText('Tipo', margin + 40, yPosition, { fontSize: 10 })
+      addText('Descrição', margin + 80, yPosition, { fontSize: 10 })
+      addText('Valor', pageWidth - margin - 30, yPosition, { fontSize: 10 })
+      yPosition += 5
+      addLine(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 8
 
       // Linhas da tabela
       exportData.expenses.slice(0, 20).forEach((expense) => {
         if (yPosition > 250) {
-          pdf.addPage();
-          yPosition = margin;
+          pdf.addPage()
+          yPosition = margin
         }
 
-        addText(formatDate(expense.date), margin, yPosition, { fontSize: 9 });
-        addText(getExpenseTypeLabel(expense.type), margin + 40, yPosition, { fontSize: 9 });
-        addText(expense.description.substring(0, 30), margin + 80, yPosition, { fontSize: 9 });
-        addText(formatCurrency(expense.amount), pageWidth - margin - 30, yPosition, { fontSize: 9 });
-        yPosition += 6;
-      });
+        addText(formatDate(expense.date), margin, yPosition, { fontSize: 9 })
+        addText(getExpenseTypeLabel(expense.type), margin + 40, yPosition, {
+          fontSize: 9,
+        })
+        addText(expense.description.substring(0, 30), margin + 80, yPosition, {
+          fontSize: 9,
+        })
+        addText(
+          formatCurrency(expense.amount),
+          pageWidth - margin - 30,
+          yPosition,
+          { fontSize: 9 }
+        )
+        yPosition += 6
+      })
 
       if (exportData.expenses.length > 20) {
-        yPosition += 10;
-        addText(`... e mais ${exportData.expenses.length - 20} despesas`, margin, yPosition, { fontSize: 9 });
+        yPosition += 10
+        addText(
+          `... e mais ${exportData.expenses.length - 20} despesas`,
+          margin,
+          yPosition,
+          { fontSize: 9 }
+        )
       }
     }
 
     // Rodapé
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    addText('Relatório gerado pelo AutoTrack - Gestão Veicular', margin, pageHeight - 20, { fontSize: 8 });
-    addText('www.autotrack.com.br', pageWidth - margin - 50, pageHeight - 20, { fontSize: 8 });
+    const pageHeight = pdf.internal.pageSize.getHeight()
+    addText(
+      'Relatório gerado pelo AutoTrack - Gestão Veicular',
+      margin,
+      pageHeight - 20,
+      { fontSize: 8 }
+    )
+    addText('www.autotrack.com.br', pageWidth - margin - 50, pageHeight - 20, {
+      fontSize: 8,
+    })
 
     // Download
-    pdf.save(`relatorio-${vehicle.plate}-${formatDate(new Date())}.pdf`);
-  };
+    pdf.save(`relatorio-${vehicle.plate}-${formatDate(new Date())}.pdf`)
+  }
 
   const generateShareUrl = (vehicle: Vehicle) => {
-    const baseUrl = window.location.origin;
-    const vehicleId = vehicle.id;
-    const shareUrl = `${baseUrl}/public/vehicle/${vehicleId}`;
-    setShareUrl(shareUrl);
-    return shareUrl;
-  };
+    const baseUrl = window.location.origin
+    const vehicleId = vehicle.id
+    const shareUrl = `${baseUrl}/public/vehicle/${vehicleId}`
+    setShareUrl(shareUrl)
+    return shareUrl
+  }
 
   const generateQRCode = async (url: string) => {
     try {
-      const qrCodeDataUrl = await QRCode.toDataURL(url);
-      setQrCodeUrl(qrCodeDataUrl);
+      const qrCodeDataUrl = await QRCode.toDataURL(url)
+      setQrCodeUrl(qrCodeDataUrl)
     } catch (error) {
-      console.error('Erro ao gerar QR Code:', error);
+      console.error('Erro ao gerar QR Code:', error)
     }
-  };
+  }
 
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     } catch (error) {
-      console.error('Erro ao copiar:', error);
+      console.error('Erro ao copiar:', error)
     }
-  };
+  }
 
   const shareViaWhatsApp = (url: string) => {
-    const message = `Confira as informações do meu veículo no AutoTrack: ${url}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
+    const message = `Confira as informações do meu veículo no AutoTrack: ${url}`
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank')
+  }
 
   const shareViaEmail = (url: string) => {
-    const subject = 'Informações do meu veículo - AutoTrack';
-    const body = `Olá,\n\nConfira as informações do meu veículo no AutoTrack:\n${url}\n\nAtenciosamente`;
-    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoUrl);
-  };
+    const subject = 'Informações do meu veículo - AutoTrack'
+    const body = `Olá,\n\nConfira as informações do meu veículo no AutoTrack:\n${url}\n\nAtenciosamente`
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.open(mailtoUrl)
+  }
 
   const openExportModal = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
-    setIsExportModalOpen(true);
-  };
+    setSelectedVehicle(vehicle)
+    setIsExportModalOpen(true)
+  }
 
   const openShareModal = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
-    const url = generateShareUrl(vehicle);
-    generateQRCode(url);
-    setIsShareModalOpen(true);
-  };
+    setSelectedVehicle(vehicle)
+    const url = generateShareUrl(vehicle)
+    generateQRCode(url)
+    setIsShareModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Exportar e Compartilhar</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Exportar e Compartilhar
+          </h1>
           <p className="text-gray-600 mt-1">
-            Exporte relatórios em PDF e compartilhe informações dos seus veículos
+            Exporte relatórios em PDF e compartilhe informações dos seus
+            veículos
           </p>
         </div>
       </div>
@@ -282,10 +335,16 @@ const ExportShare: React.FC = () => {
           <div className="flex">
             <FileText className="w-5 h-5 text-blue-600 mr-3 mt-0.5" />
             <div>
-              <h4 className="text-sm font-medium text-blue-800">Exportação PDF</h4>
+              <h4 className="text-sm font-medium text-blue-800">
+                Exportação PDF
+              </h4>
               <p className="text-sm text-blue-700 mt-1">
-                A exportação de relatórios em PDF está disponível apenas para usuários Avançado e Pro. 
-                <a href="/register" className="underline ml-1">Faça upgrade do seu plano</a> para acessar esta funcionalidade.
+                A exportação de relatórios em PDF está disponível apenas para
+                usuários Avançado e Pro.
+                <a href="/register" className="underline ml-1">
+                  Faça upgrade do seu plano
+                </a>{' '}
+                para acessar esta funcionalidade.
               </p>
             </div>
           </div>
@@ -308,7 +367,10 @@ const ExportShare: React.FC = () => {
           </Card>
         ) : (
           vehicles.map((vehicle) => (
-            <Card key={vehicle.id} className="hover:shadow-lg transition-shadow">
+            <Card
+              key={vehicle.id}
+              className="hover:shadow-lg transition-shadow"
+            >
               <div className="flex items-start space-x-4">
                 {/* Foto do veículo */}
                 <div className="flex-shrink-0">
@@ -342,7 +404,10 @@ const ExportShare: React.FC = () => {
                       </div>
                       <p className="text-xs text-gray-600">Despesas</p>
                       <p className="text-sm font-semibold text-gray-900">
-                        {mockExpenses.filter(e => e.vehicleId === vehicle.id).length}
+                        {
+                          mockExpenses.filter((e) => e.vehicleId === vehicle.id)
+                            .length
+                        }
                       </p>
                     </div>
                     <div className="text-center">
@@ -353,7 +418,7 @@ const ExportShare: React.FC = () => {
                       <p className="text-sm font-semibold text-gray-900">
                         {formatCurrency(
                           mockExpenses
-                            .filter(e => e.vehicleId === vehicle.id)
+                            .filter((e) => e.vehicleId === vehicle.id)
                             .reduce((sum, e) => sum + e.amount, 0)
                         )}
                       </p>
@@ -400,7 +465,9 @@ const ExportShare: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => window.open(`/vehicles/${vehicle.id}`, '_blank')}
+                      onClick={() =>
+                        window.open(`/vehicles/${vehicle.id}`, '_blank')
+                      }
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Ver Detalhes
@@ -417,8 +484,8 @@ const ExportShare: React.FC = () => {
       <Modal
         isOpen={isExportModalOpen}
         onClose={() => {
-          setIsExportModalOpen(false);
-          setSelectedVehicle(null);
+          setIsExportModalOpen(false)
+          setSelectedVehicle(null)
         }}
         title="Exportar Relatório PDF"
         size="md"
@@ -427,13 +494,13 @@ const ExportShare: React.FC = () => {
           <ExportOptions
             vehicle={selectedVehicle}
             onExport={() => {
-              generatePDF(selectedVehicle);
-              setIsExportModalOpen(false);
-              setSelectedVehicle(null);
+              generatePDF(selectedVehicle)
+              setIsExportModalOpen(false)
+              setSelectedVehicle(null)
             }}
             onCancel={() => {
-              setIsExportModalOpen(false);
-              setSelectedVehicle(null);
+              setIsExportModalOpen(false)
+              setSelectedVehicle(null)
             }}
           />
         )}
@@ -443,10 +510,10 @@ const ExportShare: React.FC = () => {
       <Modal
         isOpen={isShareModalOpen}
         onClose={() => {
-          setIsShareModalOpen(false);
-          setSelectedVehicle(null);
-          setShareUrl('');
-          setQrCodeUrl('');
+          setIsShareModalOpen(false)
+          setSelectedVehicle(null)
+          setShareUrl('')
+          setQrCodeUrl('')
         }}
         title="Compartilhar Veículo"
         size="lg"
@@ -461,35 +528,39 @@ const ExportShare: React.FC = () => {
             onEmail={() => shareViaEmail(shareUrl)}
             copied={copied}
             onClose={() => {
-              setIsShareModalOpen(false);
-              setSelectedVehicle(null);
-              setShareUrl('');
-              setQrCodeUrl('');
+              setIsShareModalOpen(false)
+              setSelectedVehicle(null)
+              setShareUrl('')
+              setQrCodeUrl('')
             }}
           />
         )}
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente de opções de exportação
 interface ExportOptionsProps {
-  vehicle: Vehicle;
-  onExport: () => void;
-  onCancel: () => void;
+  vehicle: Vehicle
+  onExport: () => void
+  onCancel: () => void
 }
 
-const ExportOptions: React.FC<ExportOptionsProps> = ({ vehicle, onExport, onCancel }) => {
-  const expenses = mockExpenses.filter(e => e.vehicleId === vehicle.id);
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+const ExportOptions: React.FC<ExportOptionsProps> = ({
+  vehicle,
+  onExport,
+  onCancel,
+}) => {
+  const expenses = mockExpenses.filter((e) => e.vehicleId === vehicle.id)
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+      currency: 'BRL',
+    }).format(value)
+  }
 
   return (
     <div className="space-y-4">
@@ -510,7 +581,9 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ vehicle, onExport, onCanc
           )}
           <div>
             <p className="font-medium text-gray-900">{vehicle.model}</p>
-            <p className="text-sm text-gray-600">{vehicle.plate} • {vehicle.year}</p>
+            <p className="text-sm text-gray-600">
+              {vehicle.plate} • {vehicle.year}
+            </p>
           </div>
         </div>
       </div>
@@ -536,7 +609,9 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ vehicle, onExport, onCanc
 
       {/* O que será incluído */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">O relatório incluirá:</h3>
+        <h3 className="font-medium text-gray-900 mb-3">
+          O relatório incluirá:
+        </h3>
         <ul className="space-y-2 text-sm text-gray-600">
           <li className="flex items-center">
             <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
@@ -567,19 +642,19 @@ const ExportOptions: React.FC<ExportOptionsProps> = ({ vehicle, onExport, onCanc
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Componente de opções de compartilhamento
 interface ShareOptionsProps {
-  vehicle: Vehicle;
-  shareUrl: string;
-  qrCodeUrl: string;
-  onCopy: () => void;
-  onWhatsApp: () => void;
-  onEmail: () => void;
-  copied: boolean;
-  onClose: () => void;
+  vehicle: Vehicle
+  shareUrl: string
+  qrCodeUrl: string
+  onCopy: () => void
+  onWhatsApp: () => void
+  onEmail: () => void
+  copied: boolean
+  onClose: () => void
 }
 
 const ShareOptions: React.FC<ShareOptionsProps> = ({
@@ -590,7 +665,7 @@ const ShareOptions: React.FC<ShareOptionsProps> = ({
   onWhatsApp,
   onEmail,
   copied,
-  onClose
+  onClose,
 }) => {
   return (
     <div className="space-y-6">
@@ -611,20 +686,20 @@ const ShareOptions: React.FC<ShareOptionsProps> = ({
           )}
           <div>
             <p className="font-medium text-gray-900">{vehicle.model}</p>
-            <p className="text-sm text-gray-600">{vehicle.plate} • {vehicle.year}</p>
+            <p className="text-sm text-gray-600">
+              {vehicle.plate} • {vehicle.year}
+            </p>
           </div>
         </div>
       </div>
 
       {/* URL de compartilhamento */}
       <div>
-        <h3 className="font-medium text-gray-900 mb-3">Link de compartilhamento</h3>
+        <h3 className="font-medium text-gray-900 mb-3">
+          Link de compartilhamento
+        </h3>
         <div className="flex space-x-2">
-          <Input
-            value={shareUrl}
-            readOnly
-            className="flex-1"
-          />
+          <Input value={shareUrl} readOnly className="flex-1" />
           <Button
             variant="outline"
             onClick={onCopy}
@@ -673,11 +748,7 @@ const ShareOptions: React.FC<ShareOptionsProps> = ({
             <MessageCircle className="w-4 h-4 mr-2" />
             WhatsApp
           </Button>
-          <Button
-            variant="outline"
-            onClick={onEmail}
-            className="justify-start"
-          >
+          <Button variant="outline" onClick={onEmail} className="justify-start">
             <Mail className="w-4 h-4 mr-2" />
             Email
           </Button>
@@ -689,10 +760,13 @@ const ShareOptions: React.FC<ShareOptionsProps> = ({
         <div className="flex">
           <QrCode className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-blue-800">Página Pública</h4>
+            <h4 className="text-sm font-medium text-blue-800">
+              Página Pública
+            </h4>
             <p className="text-sm text-blue-700 mt-1">
-              O link compartilhado leva a uma página pública onde qualquer pessoa pode visualizar 
-              as informações do veículo. Use com cuidado e apenas com pessoas de confiança.
+              O link compartilhado leva a uma página pública onde qualquer
+              pessoa pode visualizar as informações do veículo. Use com cuidado
+              e apenas com pessoas de confiança.
             </p>
           </div>
         </div>
@@ -704,7 +778,7 @@ const ShareOptions: React.FC<ShareOptionsProps> = ({
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ExportShare;
+export default ExportShare

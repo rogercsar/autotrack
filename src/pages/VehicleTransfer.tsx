@@ -1,23 +1,23 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useAuthStore } from '../stores/authStore';
+import React, { useState, useMemo, useEffect } from 'react'
+import { useAuthStore } from '../stores/authStore'
 // import { getUserVehicles, mockUsers } from '../data/mockData';
-import { Vehicle, VehicleTransfer, User } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import { getVehiclesByOwner } from '../services/vehicleService';
-import { 
-  getTransfersInvolved, 
-  createTransfer, 
-  acceptTransfer, 
-  rejectTransfer, 
-  deleteTransfer 
-} from '../services/transferService';
-import { getProfileById, getProfileByEmail } from '../services/profileService';
-import { 
-  Car, 
-  ArrowRight, 
+import { Vehicle, VehicleTransfer, User } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import { getVehiclesByOwner } from '../services/vehicleService'
+import {
+  getTransfersInvolved,
+  createTransfer,
+  acceptTransfer,
+  rejectTransfer,
+  deleteTransfer,
+} from '../services/transferService'
+import { getProfileById, getProfileByEmail } from '../services/profileService'
+import {
+  Car,
+  ArrowRight,
   User as UserIcon,
   Clock,
   CheckCircle,
@@ -26,65 +26,77 @@ import {
   Search,
   Eye,
   Trash2,
-  Send
-} from 'lucide-react';
+  Send,
+} from 'lucide-react'
 
 const VehicleTransferPage: React.FC = () => {
-  const { user } = useAuthStore();
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [transfers, setTransfers] = useState<VehicleTransfer[]>([]);
-  const [profilesCache, setProfilesCache] = useState<Record<string, User>>({});
-  
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
-  const [selectedTransfer, setSelectedTransfer] = useState<VehicleTransfer | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'rejected'>('all');
+  const { user } = useAuthStore()
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [transfers, setTransfers] = useState<VehicleTransfer[]>([])
+  const [profilesCache, setProfilesCache] = useState<Record<string, User>>({})
+
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false)
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null)
+  const [selectedTransfer, setSelectedTransfer] =
+    useState<VehicleTransfer | null>(null)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'pending' | 'accepted' | 'rejected'
+  >('all')
 
   // Carregar veículos do usuário e transferências onde está envolvido
   useEffect(() => {
-    let active = true;
+    let active = true
     const load = async () => {
       if (user?.id) {
-        const vs = await getVehiclesByOwner(user.id);
-        if (active) setVehicles(vs);
+        const vs = await getVehiclesByOwner(user.id)
+        if (active) setVehicles(vs)
       }
-      const ts = await getTransfersInvolved();
-      if (active) setTransfers(ts);
-    };
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+      const ts = await getTransfersInvolved()
+      if (active) setTransfers(ts)
+    }
+    load()
+    return () => {
+      active = false
+    }
+  }, [user?.id])
 
   // Carregar perfis dos usuários envolvidos nas transferências
   useEffect(() => {
-    let active = true;
+    let active = true
     const fillProfiles = async () => {
-      const ids = Array.from(new Set(transfers.flatMap(t => [t.fromUserId, t.toUserId])));
-      const missing = ids.filter(id => !profilesCache[id]);
-      if (missing.length === 0) return;
-      const entries: Record<string, User> = {};
+      const ids = Array.from(
+        new Set(transfers.flatMap((t) => [t.fromUserId, t.toUserId]))
+      )
+      const missing = ids.filter((id) => !profilesCache[id])
+      if (missing.length === 0) return
+      const entries: Record<string, User> = {}
       for (const id of missing) {
-        const profile = await getProfileById(id);
-        if (profile) entries[id] = profile;
+        const profile = await getProfileById(id)
+        if (profile) entries[id] = profile
       }
-      if (active && Object.keys(entries).length) setProfilesCache(prev => ({ ...prev, ...entries }));
-    };
-    fillProfiles();
-    return () => { active = false; };
-  }, [transfers, profilesCache]);
+      if (active && Object.keys(entries).length)
+        setProfilesCache((prev) => ({ ...prev, ...entries }))
+    }
+    fillProfiles()
+    return () => {
+      active = false
+    }
+  }, [transfers, profilesCache])
 
   // Filtrar transferências
   const filteredTransfers = useMemo(() => {
-    return transfers.filter(transfer => {
-      const vehicle = vehicles.find(v => v.id === transfer.vehicleId);
-      const matchesSearch = vehicle?.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           vehicle?.plate.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || transfer.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [transfers, vehicles, searchTerm, statusFilter]);
+    return transfers.filter((transfer) => {
+      const vehicle = vehicles.find((v) => v.id === transfer.vehicleId)
+      const matchesSearch =
+        vehicle?.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vehicle?.plate.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesStatus =
+        statusFilter === 'all' || transfer.status === statusFilter
+      return matchesSearch && matchesStatus
+    })
+  }, [transfers, vehicles, searchTerm, statusFilter])
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -92,104 +104,118 @@ const VehicleTransferPage: React.FC = () => {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
-  };
+      minute: '2-digit',
+    }).format(new Date(date))
+  }
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       pending: 'Pendente',
       accepted: 'Aceita',
-      rejected: 'Rejeitada'
-    };
-    return labels[status] || status;
-  };
+      rejected: 'Rejeitada',
+    }
+    return labels[status] || status
+  }
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
       accepted: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+      rejected: 'bg-red-100 text-red-800',
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-4 h-4" />
       case 'accepted':
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="w-4 h-4" />
       case 'rejected':
-        return <XCircle className="w-4 h-4" />;
+        return <XCircle className="w-4 h-4" />
       default:
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-4 h-4" />
     }
-  };
+  }
 
-  const handleTransferVehicle = async (transferData: { vehicleId: string; toUserEmail: string; message?: string }) => {
-    if (!transferData.toUserEmail) return;
-    const profile = await getProfileByEmail(transferData.toUserEmail);
+  const handleTransferVehicle = async (transferData: {
+    vehicleId: string
+    toUserEmail: string
+    message?: string
+  }) => {
+    if (!transferData.toUserEmail) return
+    const profile = await getProfileByEmail(transferData.toUserEmail)
     if (!profile) {
-      alert('Usuário não encontrado pelo email informado.');
-      return;
+      alert('Usuário não encontrado pelo email informado.')
+      return
     }
-    const { transfer, error } = await createTransfer(transferData.vehicleId, profile.id, transferData.message);
+    const { transfer, error } = await createTransfer(
+      transferData.vehicleId,
+      profile.id,
+      transferData.message
+    )
     if (error || !transfer) {
-      alert('Não foi possível criar a transferência.');
-      return;
+      alert('Não foi possível criar a transferência.')
+      return
     }
-    setTransfers([transfer, ...transfers]);
-    setProfilesCache(prev => ({ ...prev, [profile.id]: profile }));
-    setIsTransferModalOpen(false);
-    setSelectedVehicle(null);
-  };
+    setTransfers([transfer, ...transfers])
+    setProfilesCache((prev) => ({ ...prev, [profile.id]: profile }))
+    setIsTransferModalOpen(false)
+    setSelectedVehicle(null)
+  }
 
   const handleAcceptTransfer = async (transferId: string) => {
-    const { transfer, error } = await acceptTransfer(transferId);
+    const { transfer, error } = await acceptTransfer(transferId)
     if (error || !transfer) {
-      alert('Erro ao aceitar transferência.');
-      return;
+      alert('Erro ao aceitar transferência.')
+      return
     }
-    setTransfers(prev => prev.map(t => (t.id === transferId ? transfer : t)));
-  };
+    setTransfers((prev) =>
+      prev.map((t) => (t.id === transferId ? transfer : t))
+    )
+  }
 
   const handleRejectTransfer = async (transferId: string) => {
-    const { transfer, error } = await rejectTransfer(transferId);
+    const { transfer, error } = await rejectTransfer(transferId)
     if (error || !transfer) {
-      alert('Erro ao rejeitar transferência.');
-      return;
+      alert('Erro ao rejeitar transferência.')
+      return
     }
-    setTransfers(prev => prev.map(t => (t.id === transferId ? transfer : t)));
-  };
+    setTransfers((prev) =>
+      prev.map((t) => (t.id === transferId ? transfer : t))
+    )
+  }
 
   const handleDeleteTransfer = async (transferId: string) => {
     if (window.confirm('Tem certeza que deseja excluir esta transferência?')) {
-      const { error } = await deleteTransfer(transferId);
+      const { error } = await deleteTransfer(transferId)
       if (error) {
-        alert('Erro ao excluir transferência.');
-        return;
+        alert('Erro ao excluir transferência.')
+        return
       }
-      setTransfers(transfers.filter(t => t.id !== transferId));
+      setTransfers(transfers.filter((t) => t.id !== transferId))
     }
-  };
+  }
 
   const openTransferModal = (vehicle: Vehicle) => {
-    setSelectedVehicle(vehicle);
-    setIsTransferModalOpen(true);
-  };
+    setSelectedVehicle(vehicle)
+    setIsTransferModalOpen(true)
+  }
 
   const openDetailsModal = (transfer: VehicleTransfer) => {
-    setSelectedTransfer(transfer);
-    setIsDetailsModalOpen(true);
-  };
+    setSelectedTransfer(transfer)
+    setIsDetailsModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Transferência de Veículos</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Transferência de Veículos
+          </h1>
           <p className="text-gray-600 mt-1">
             Transfira seus veículos para outros usuários do AutoTrack
           </p>
@@ -201,10 +227,13 @@ const VehicleTransferPage: React.FC = () => {
         <div className="flex">
           <AlertTriangle className="w-5 h-5 text-yellow-600 mr-3 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-yellow-800">Aviso Importante</h4>
+            <h4 className="text-sm font-medium text-yellow-800">
+              Aviso Importante
+            </h4>
             <p className="text-sm text-yellow-700 mt-1">
-              Ao transferir um veículo, todo o histórico de despesas e informações serão transferidos para o novo proprietário. 
-              Os grupos criados por você não serão transferidos.
+              Ao transferir um veículo, todo o histórico de despesas e
+              informações serão transferidos para o novo proprietário. Os grupos
+              criados por você não serão transferidos.
             </p>
           </div>
         </div>
@@ -212,7 +241,9 @@ const VehicleTransferPage: React.FC = () => {
 
       {/* Meus veículos */}
       <Card>
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Meus Veículos</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Meus Veículos
+        </h2>
         {vehicles.length === 0 ? (
           <div className="text-center py-8">
             <Car className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -221,7 +252,10 @@ const VehicleTransferPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {vehicles.map((vehicle) => (
-              <div key={vehicle.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div
+                key={vehicle.id}
+                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+              >
                 <div className="flex items-center space-x-3 mb-3">
                   {vehicle.photo ? (
                     <img
@@ -235,7 +269,9 @@ const VehicleTransferPage: React.FC = () => {
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{vehicle.model}</h3>
+                    <h3 className="font-medium text-gray-900">
+                      {vehicle.model}
+                    </h3>
                     <p className="text-sm text-gray-600">{vehicle.plate}</p>
                   </div>
                 </div>
@@ -293,20 +329,21 @@ const VehicleTransferPage: React.FC = () => {
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 Nenhuma transferência encontrada
               </h3>
-              <p className="text-gray-500">
-                Tente ajustar os filtros de busca
-              </p>
+              <p className="text-gray-500">Tente ajustar os filtros de busca</p>
             </div>
           </Card>
         ) : (
           filteredTransfers.map((transfer) => {
-            const vehicle = vehicles.find(v => v.id === transfer.vehicleId);
-            const fromUser = profilesCache[transfer.fromUserId];
-            const toUser = profilesCache[transfer.toUserId];
-            const isFromMe = transfer.fromUserId === user?.id;
+            const vehicle = vehicles.find((v) => v.id === transfer.vehicleId)
+            const fromUser = profilesCache[transfer.fromUserId]
+            const toUser = profilesCache[transfer.toUserId]
+            const isFromMe = transfer.fromUserId === user?.id
 
             return (
-              <Card key={transfer.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={transfer.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-4">
                     <div className="p-2 bg-gray-100 rounded-lg">
@@ -317,16 +354,21 @@ const VehicleTransferPage: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-900">
                           {vehicle?.model} - {vehicle?.plate}
                         </h3>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transfer.status)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transfer.status)}`}
+                        >
                           {getStatusIcon(transfer.status)}
-                          <span className="ml-1">{getStatusLabel(transfer.status)}</span>
+                          <span className="ml-1">
+                            {getStatusLabel(transfer.status)}
+                          </span>
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
                         <div className="flex items-center">
                           <UserIcon className="w-4 h-4 mr-1" />
-                          {isFromMe ? 'Para' : 'De'}: {isFromMe ? toUser?.name : fromUser?.name}
+                          {isFromMe ? 'Para' : 'De'}:{' '}
+                          {isFromMe ? toUser?.name : fromUser?.name}
                         </div>
                         <div className="flex items-center">
                           <Clock className="w-4 h-4 mr-1" />
@@ -342,12 +384,13 @@ const VehicleTransferPage: React.FC = () => {
 
                       {transfer.completedAt && (
                         <p className="text-xs text-gray-500">
-                          {isFromMe ? 'Transferido' : 'Recebido'} em {formatDate(transfer.completedAt)}
+                          {isFromMe ? 'Transferido' : 'Recebido'} em{' '}
+                          {formatDate(transfer.completedAt)}
                         </p>
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="ghost"
@@ -356,7 +399,7 @@ const VehicleTransferPage: React.FC = () => {
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
-                    
+
                     {!isFromMe && transfer.status === 'pending' && (
                       <>
                         <Button
@@ -376,7 +419,7 @@ const VehicleTransferPage: React.FC = () => {
                         </Button>
                       </>
                     )}
-                    
+
                     {isFromMe && transfer.status === 'pending' && (
                       <Button
                         variant="ghost"
@@ -389,7 +432,7 @@ const VehicleTransferPage: React.FC = () => {
                   </div>
                 </div>
               </Card>
-            );
+            )
           })
         )}
       </div>
@@ -398,8 +441,8 @@ const VehicleTransferPage: React.FC = () => {
       <Modal
         isOpen={isTransferModalOpen}
         onClose={() => {
-          setIsTransferModalOpen(false);
-          setSelectedVehicle(null);
+          setIsTransferModalOpen(false)
+          setSelectedVehicle(null)
         }}
         title="Transferir Veículo"
         size="md"
@@ -409,8 +452,8 @@ const VehicleTransferPage: React.FC = () => {
             vehicle={selectedVehicle}
             onSubmit={handleTransferVehicle}
             onCancel={() => {
-              setIsTransferModalOpen(false);
-              setSelectedVehicle(null);
+              setIsTransferModalOpen(false)
+              setSelectedVehicle(null)
             }}
           />
         )}
@@ -420,8 +463,8 @@ const VehicleTransferPage: React.FC = () => {
       <Modal
         isOpen={isDetailsModalOpen}
         onClose={() => {
-          setIsDetailsModalOpen(false);
-          setSelectedTransfer(null);
+          setIsDetailsModalOpen(false)
+          setSelectedTransfer(null)
         }}
         title="Detalhes da Transferência"
         size="lg"
@@ -429,65 +472,77 @@ const VehicleTransferPage: React.FC = () => {
         {selectedTransfer && (
           <TransferDetails
             transfer={selectedTransfer}
-            vehicle={vehicles.find(v => v.id === selectedTransfer.vehicleId)}
+            vehicle={vehicles.find((v) => v.id === selectedTransfer.vehicleId)}
             fromUser={profilesCache[selectedTransfer.fromUserId]}
             toUser={profilesCache[selectedTransfer.toUserId]}
             onAccept={() => {
-              handleAcceptTransfer(selectedTransfer.id);
-              setIsDetailsModalOpen(false);
-              setSelectedTransfer(null);
+              handleAcceptTransfer(selectedTransfer.id)
+              setIsDetailsModalOpen(false)
+              setSelectedTransfer(null)
             }}
             onReject={() => {
-              handleRejectTransfer(selectedTransfer.id);
-              setIsDetailsModalOpen(false);
-              setSelectedTransfer(null);
+              handleRejectTransfer(selectedTransfer.id)
+              setIsDetailsModalOpen(false)
+              setSelectedTransfer(null)
             }}
             onClose={() => {
-              setIsDetailsModalOpen(false);
-              setSelectedTransfer(null);
+              setIsDetailsModalOpen(false)
+              setSelectedTransfer(null)
             }}
           />
         )}
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente do formulário de transferência
 interface TransferFormProps {
-  vehicle: Vehicle;
-  onSubmit: (data: { vehicleId: string; toUserEmail: string; message?: string }) => void;
-  onCancel: () => void;
+  vehicle: Vehicle
+  onSubmit: (data: {
+    vehicleId: string
+    toUserEmail: string
+    message?: string
+  }) => void
+  onCancel: () => void
 }
 
-const TransferForm: React.FC<TransferFormProps> = ({ vehicle, onSubmit, onCancel }) => {
+const TransferForm: React.FC<TransferFormProps> = ({
+  vehicle,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     toUserEmail: '',
-    message: ''
-  });
+    message: '',
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     onSubmit({
       vehicleId: vehicle.id,
       toUserEmail: formData.toUserEmail,
-      message: formData.message
-    });
-  };
+      message: formData.message,
+    })
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Informações do veículo */}
       <div className="bg-gray-50 rounded-lg p-4">
-        <h3 className="font-medium text-gray-900 mb-2">Veículo a ser transferido</h3>
+        <h3 className="font-medium text-gray-900 mb-2">
+          Veículo a ser transferido
+        </h3>
         <div className="flex items-center space-x-3">
           {vehicle.photo ? (
             <img
@@ -502,7 +557,9 @@ const TransferForm: React.FC<TransferFormProps> = ({ vehicle, onSubmit, onCancel
           )}
           <div>
             <p className="font-medium text-gray-900">{vehicle.model}</p>
-            <p className="text-sm text-gray-600">{vehicle.plate} • {vehicle.year}</p>
+            <p className="text-sm text-gray-600">
+              {vehicle.plate} • {vehicle.year}
+            </p>
           </div>
         </div>
       </div>
@@ -537,7 +594,8 @@ const TransferForm: React.FC<TransferFormProps> = ({ vehicle, onSubmit, onCancel
           <div>
             <h4 className="text-sm font-medium text-yellow-800">Confirmação</h4>
             <p className="text-sm text-yellow-700 mt-1">
-              Tem certeza que deseja transferir este veículo? Esta ação não pode ser desfeita.
+              Tem certeza que deseja transferir este veículo? Esta ação não pode
+              ser desfeita.
             </p>
           </div>
         </div>
@@ -553,28 +611,28 @@ const TransferForm: React.FC<TransferFormProps> = ({ vehicle, onSubmit, onCancel
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Componente de detalhes da transferência
 interface TransferDetailsProps {
-  transfer: VehicleTransfer;
-  vehicle?: Vehicle;
-  fromUser?: User;
-  toUser?: User;
-  onAccept: () => void;
-  onReject: () => void;
-  onClose: () => void;
+  transfer: VehicleTransfer
+  vehicle?: Vehicle
+  fromUser?: User
+  toUser?: User
+  onAccept: () => void
+  onReject: () => void
+  onClose: () => void
 }
 
-const TransferDetails: React.FC<TransferDetailsProps> = ({ 
-  transfer, 
-  vehicle, 
-  fromUser, 
-  toUser, 
-  onAccept, 
-  onReject, 
-  onClose 
+const TransferDetails: React.FC<TransferDetailsProps> = ({
+  transfer,
+  vehicle,
+  fromUser,
+  toUser,
+  onAccept,
+  onReject,
+  onClose,
 }) => {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -582,27 +640,27 @@ const TransferDetails: React.FC<TransferDetailsProps> = ({
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
-  };
+      minute: '2-digit',
+    }).format(new Date(date))
+  }
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
       pending: 'Pendente',
       accepted: 'Aceita',
-      rejected: 'Rejeitada'
-    };
-    return labels[status] || status;
-  };
+      rejected: 'Rejeitada',
+    }
+    return labels[status] || status
+  }
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
       pending: 'bg-yellow-100 text-yellow-800',
       accepted: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800'
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+      rejected: 'bg-red-100 text-red-800',
+    }
+    return colors[status] || 'bg-gray-100 text-gray-800'
+  }
 
   return (
     <div className="space-y-6">
@@ -623,8 +681,12 @@ const TransferDetails: React.FC<TransferDetailsProps> = ({
               </div>
             )}
             <div>
-              <h4 className="text-lg font-medium text-gray-900">{vehicle.model}</h4>
-              <p className="text-gray-600">{vehicle.plate} • {vehicle.year} • {vehicle.color}</p>
+              <h4 className="text-lg font-medium text-gray-900">
+                {vehicle.model}
+              </h4>
+              <p className="text-gray-600">
+                {vehicle.plate} • {vehicle.year} • {vehicle.color}
+              </p>
             </div>
           </div>
         ) : (
@@ -635,26 +697,34 @@ const TransferDetails: React.FC<TransferDetailsProps> = ({
       {/* Informações dos usuários */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Proprietário Atual</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Proprietário Atual
+          </h3>
           <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
               <UserIcon className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{fromUser?.name || 'Usuário não encontrado'}</p>
+              <p className="font-medium text-gray-900">
+                {fromUser?.name || 'Usuário não encontrado'}
+              </p>
               <p className="text-sm text-gray-600">{fromUser?.email}</p>
             </div>
           </div>
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Novo Proprietário</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
+            Novo Proprietário
+          </h3>
           <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg">
             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
               <UserIcon className="w-5 h-5 text-gray-600" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{toUser?.name || 'Usuário não encontrado'}</p>
+              <p className="font-medium text-gray-900">
+                {toUser?.name || 'Usuário não encontrado'}
+              </p>
               <p className="text-sm text-gray-600">{toUser?.email}</p>
             </div>
           </div>
@@ -666,7 +736,9 @@ const TransferDetails: React.FC<TransferDetailsProps> = ({
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-3">Status</h3>
           <div className="flex items-center space-x-2">
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(transfer.status)}`}>
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(transfer.status)}`}
+            >
               {getStatusLabel(transfer.status)}
             </span>
           </div>
@@ -675,7 +747,8 @@ const TransferDetails: React.FC<TransferDetailsProps> = ({
           </p>
           {transfer.completedAt && (
             <p className="text-sm text-gray-600">
-              {transfer.status === 'accepted' ? 'Aceito' : 'Rejeitado'} em {formatDate(transfer.completedAt)}
+              {transfer.status === 'accepted' ? 'Aceito' : 'Rejeitado'} em{' '}
+              {formatDate(transfer.completedAt)}
             </p>
           )}
         </div>
@@ -711,7 +784,7 @@ const TransferDetails: React.FC<TransferDetailsProps> = ({
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default VehicleTransferPage;
+export default VehicleTransferPage

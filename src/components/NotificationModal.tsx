@@ -1,45 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { mockUsers } from '../data/mockData';
-import { User } from '../types';
-import Button from './ui/Button';
-import Modal from './ui/Modal';
-import { 
-  Bell, 
-  X, 
-  CheckCircle, 
-  AlertTriangle, 
-  Info, 
+import React, { useState, useEffect } from 'react'
+import { mockUsers } from '../data/mockData'
+import { User } from '../types'
+import Button from './ui/Button'
+import Modal from './ui/Modal'
+import {
+  Bell,
+  X,
+  CheckCircle,
+  AlertTriangle,
+  Info,
   User as UserIcon,
   Clock,
   MapPin,
   Car,
-  Settings
-} from 'lucide-react';
+  Settings,
+} from 'lucide-react'
 
 interface Notification {
-  id: string;
-  type: 'info' | 'success' | 'warning' | 'error' | 'emergency';
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  fromUser?: User;
-  vehicleId?: string;
-  vehicleModel?: string;
-  location?: string;
-  actionUrl?: string;
-  actionText?: string;
+  id: string
+  type: 'info' | 'success' | 'warning' | 'error' | 'emergency'
+  title: string
+  message: string
+  timestamp: Date
+  read: boolean
+  fromUser?: User
+  vehicleId?: string
+  vehicleModel?: string
+  location?: string
+  actionUrl?: string
+  actionText?: string
 }
 
 interface NotificationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
-const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [filter, setFilter] = useState<'all' | 'unread' | 'emergency'>('all');
-  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
+const NotificationModal: React.FC<NotificationModalProps> = ({
+  isOpen,
+  onClose,
+}) => {
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [filter, setFilter] = useState<'all' | 'unread' | 'emergency'>('all')
+  const [selectedNotification, setSelectedNotification] =
+    useState<Notification | null>(null)
 
   // Mock notifications - em uma aplicação real, isso viria de uma API
   useEffect(() => {
@@ -48,27 +52,29 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
         id: '1',
         type: 'emergency',
         title: 'Alerta de Emergência',
-        message: 'João Silva ativou um alerta de emergência para o veículo Honda Civic',
+        message:
+          'João Silva ativou um alerta de emergência para o veículo Honda Civic',
         timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutos atrás
         read: false,
-        fromUser: mockUsers.find(u => u.id === '2'),
+        fromUser: mockUsers.find((u) => u.id === '2'),
         vehicleId: '1',
         vehicleModel: 'Honda Civic',
         location: 'Av. Paulista, 1000 - São Paulo, SP',
         actionUrl: '/alerts',
-        actionText: 'Ver Detalhes'
+        actionText: 'Ver Detalhes',
       },
       {
         id: '2',
         type: 'success',
         title: 'Despesa Registrada',
-        message: 'Nova despesa de R$ 150,00 registrada para o veículo Toyota Corolla',
+        message:
+          'Nova despesa de R$ 150,00 registrada para o veículo Toyota Corolla',
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
         read: false,
         vehicleId: '2',
         vehicleModel: 'Toyota Corolla',
         actionUrl: '/expenses',
-        actionText: 'Ver Despesas'
+        actionText: 'Ver Despesas',
       },
       {
         id: '3',
@@ -80,7 +86,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
         vehicleId: '1',
         vehicleModel: 'Honda Civic',
         actionUrl: '/vehicles/1',
-        actionText: 'Ver Veículo'
+        actionText: 'Ver Veículo',
       },
       {
         id: '4',
@@ -89,122 +95,116 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
         message: 'Maria Santos foi adicionada ao grupo "Família Silva"',
         timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 dias atrás
         read: true,
-        fromUser: mockUsers.find(u => u.id === '3'),
+        fromUser: mockUsers.find((u) => u.id === '3'),
         actionUrl: '/groups',
-        actionText: 'Ver Grupo'
+        actionText: 'Ver Grupo',
       },
       {
         id: '5',
         type: 'error',
         title: 'Falha no Backup',
-        message: 'Não foi possível fazer backup dos seus dados. Tente novamente.',
+        message:
+          'Não foi possível fazer backup dos seus dados. Tente novamente.',
         timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 semana atrás
         read: true,
         actionUrl: '/settings',
-        actionText: 'Configurações'
-      }
-    ];
+        actionText: 'Configurações',
+      },
+    ]
 
-    setNotifications(mockNotifications);
-  }, []);
+    setNotifications(mockNotifications)
+  }, [])
 
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = notifications.filter((notification) => {
     switch (filter) {
       case 'unread':
-        return !notification.read;
+        return !notification.read
       case 'emergency':
-        return notification.type === 'emergency';
+        return notification.type === 'emergency'
       default:
-        return true;
+        return true
     }
-  });
+  })
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-  const emergencyCount = notifications.filter(n => n.type === 'emergency').length;
+  const unreadCount = notifications.filter((n) => !n.read).length
+  const emergencyCount = notifications.filter(
+    (n) => n.type === 'emergency'
+  ).length
 
   const formatTimeAgo = (timestamp: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / (1000 * 60));
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const now = new Date()
+    const diff = now.getTime() - timestamp.getTime()
+    const minutes = Math.floor(diff / (1000 * 60))
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
     if (minutes < 60) {
-      return `${minutes} min atrás`;
+      return `${minutes} min atrás`
     } else if (hours < 24) {
-      return `${hours}h atrás`;
+      return `${hours}h atrás`
     } else {
-      return `${days} dias atrás`;
+      return `${days} dias atrás`
     }
-  };
+  }
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'emergency':
-        return <AlertTriangle className="w-5 h-5 text-red-600" />;
+        return <AlertTriangle className="w-5 h-5 text-red-600" />
       case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-green-600" />
       case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
+        return <AlertTriangle className="w-5 h-5 text-yellow-600" />
       case 'error':
-        return <X className="w-5 h-5 text-red-600" />;
+        return <X className="w-5 h-5 text-red-600" />
       default:
-        return <Info className="w-5 h-5 text-blue-600" />;
+        return <Info className="w-5 h-5 text-blue-600" />
     }
-  };
+  }
 
   const getNotificationColor = (type: string) => {
     switch (type) {
       case 'emergency':
-        return 'bg-red-50 border-red-200';
+        return 'bg-red-50 border-red-200'
       case 'success':
-        return 'bg-green-50 border-green-200';
+        return 'bg-green-50 border-green-200'
       case 'warning':
-        return 'bg-yellow-50 border-yellow-200';
+        return 'bg-yellow-50 border-yellow-200'
       case 'error':
-        return 'bg-red-50 border-red-200';
+        return 'bg-red-50 border-red-200'
       default:
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-blue-50 border-blue-200'
     }
-  };
+  }
 
   const handleMarkAsRead = (notificationId: string) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
-  };
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+    )
+  }
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
-    );
-  };
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+  }
 
   const handleNotificationClick = (notification: Notification) => {
-    setSelectedNotification(notification);
+    setSelectedNotification(notification)
     if (!notification.read) {
-      handleMarkAsRead(notification.id);
+      handleMarkAsRead(notification.id)
     }
-  };
+  }
 
   const handleAction = (notification: Notification) => {
     if (notification.actionUrl) {
       // Em uma aplicação real, isso navegaria para a URL
-      console.log('Navegando para:', notification.actionUrl);
+      console.log('Navegando para:', notification.actionUrl)
     }
-    setSelectedNotification(null);
-  };
+    setSelectedNotification(null)
+  }
 
   return (
     <>
-      <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        title="Notificações"
-        size="lg"
-      >
+      <Modal isOpen={isOpen} onClose={onClose} title="Notificações" size="lg">
         <div className="space-y-4">
           {/* Filtros e ações */}
           <div className="flex items-center justify-between">
@@ -212,8 +212,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
               <button
                 onClick={() => setFilter('all')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  filter === 'all' 
-                    ? 'bg-primary-100 text-primary-800' 
+                  filter === 'all'
+                    ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -222,8 +222,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
               <button
                 onClick={() => setFilter('unread')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  filter === 'unread' 
-                    ? 'bg-primary-100 text-primary-800' 
+                  filter === 'unread'
+                    ? 'bg-primary-100 text-primary-800'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -232,8 +232,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
               <button
                 onClick={() => setFilter('emergency')}
                 className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  filter === 'emergency' 
-                    ? 'bg-red-100 text-red-800' 
+                  filter === 'emergency'
+                    ? 'bg-red-100 text-red-800'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -254,7 +254,9 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => {/* Implementar configurações de notificação */}}
+                onClick={() => {
+                  /* Implementar configurações de notificação */
+                }}
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Configurações
@@ -272,7 +274,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
                 </h3>
                 <p className="text-gray-500">
                   {filter === 'unread' && 'Você não tem notificações não lidas'}
-                  {filter === 'emergency' && 'Você não tem alertas de emergência'}
+                  {filter === 'emergency' &&
+                    'Você não tem alertas de emergência'}
                   {filter === 'all' && 'Você não tem notificações'}
                 </p>
               </div>
@@ -281,8 +284,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
                 <div
                   key={notification.id}
                   className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                    notification.read 
-                      ? 'bg-white border-gray-200 hover:bg-gray-50' 
+                    notification.read
+                      ? 'bg-white border-gray-200 hover:bg-gray-50'
                       : 'bg-primary-50 border-primary-200 hover:bg-primary-100'
                   } ${getNotificationColor(notification.type)}`}
                   onClick={() => handleNotificationClick(notification)}
@@ -383,7 +386,10 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
 
             {selectedNotification.actionUrl && (
               <div className="flex justify-end space-x-3 pt-4">
-                <Button variant="outline" onClick={() => setSelectedNotification(null)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedNotification(null)}
+                >
                   Fechar
                 </Button>
                 <Button onClick={() => handleAction(selectedNotification)}>
@@ -395,9 +401,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose }
         )}
       </Modal>
     </>
-  );
-};
+  )
+}
 
-export default NotificationModal;
-
-
+export default NotificationModal

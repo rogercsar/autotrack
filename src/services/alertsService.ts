@@ -54,7 +54,10 @@ export async function countActiveAlertsByUser(userId: string): Promise<number> {
 }
 
 export async function createAlert(
-  payload: Omit<EmergencyAlert, 'id' | 'createdAt' | 'resolvedAt' | 'sentTo'> & {
+  payload: Omit<
+    EmergencyAlert,
+    'id' | 'createdAt' | 'resolvedAt' | 'sentTo'
+  > & {
     sentTo?: string[]
   }
 ) {
