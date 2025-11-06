@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { getUserVehicles, mockExpenses } from '../data/mockData';
 import { Vehicle, VehicleExportData, UserType } from '../types';
 import Card from '../components/ui/Card';
@@ -26,7 +26,7 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 
 const ExportShare: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [vehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''));
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);

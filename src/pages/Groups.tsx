@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { Group, User, UserType, Vehicle } from '../types';
 import { getGroupsByUser, createGroup, updateGroup, deleteGroup as deleteGroupSvc, addMember as addMemberSvc, removeMember as removeMemberSvc } from '../services/groupService';
 import { getVehiclesByOwner } from '../services/vehicleService';
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 const Groups: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [groups, setGroups] = useState<Group[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);

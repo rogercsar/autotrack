@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { UserType, User } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 const Profile: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);

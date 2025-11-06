@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { getUserVehicles, mockExpenses, getUserGroups } from '../data/mockData';
 import { Vehicle, Expense, Group } from '../types';
 import Card from '../components/ui/Card';
@@ -26,7 +26,7 @@ import {
 const VehicleDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [vehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''));
   const [expenses] = useState<Expense[]>(mockExpenses);
   const [groups] = useState<Group[]>(getUserGroups(user?.id || ''));

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../stores/authStore';
 import { RegisterData, UserType } from '../../types';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -9,7 +9,7 @@ import Card from '../../components/ui/Card';
 import { Car, Eye, EyeOff, Check } from 'lucide-react';
 
 const Register: React.FC = () => {
-  const { register: registerUser, isLoading } = useAuth();
+  const { register: registerUser, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

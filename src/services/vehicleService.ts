@@ -1,19 +1,24 @@
-import { getSupabase } from '../lib/supabaseClient';
-import { Vehicle } from '../types';
+import {
+  getVehiclesByOwner as getVehiclesByOwnerFromApi,
+  createVehicle as createVehicleFromApi,
+  updateVehicle as updateVehicleFromApi,
+  deleteVehicle as deleteVehicleFromApi,
+} from '../api/vehicle'
+import { Vehicle } from '../types'
 
 type VehicleRow = {
-  id: string;
-  owner_id: string;
-  plate: string;
-  model: string;
-  year: number;
-  color: string;
-  renavam: string;
-  photo: string | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-};
+  id: string
+  owner_id: string
+  plate: string
+  model: string
+  year: number
+  color: string
+  renavam: string
+  photo: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
 
 function mapVehicle(row: VehicleRow): Vehicle {
   return {
@@ -28,76 +33,34 @@ function mapVehicle(row: VehicleRow): Vehicle {
     isActive: row.is_active,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
-  };
+  }
 }
 
 export async function getVehiclesByOwner(ownerId: string): Promise<Vehicle[]> {
-  const s = getSupabase();
-  const { data, error } = await s
-    .from('vehicles')
-    .select('*')
-    .eq('owner_id', ownerId)
-    .order('updated_at', { ascending: false });
-  if (error || !data) return [];
-  return (data as VehicleRow[]).map(mapVehicle);
+  const data = await getVehiclesByOwnerFromApi(ownerId)
+  if (!data) return []
+  return (data as VehicleRow[]).map(mapVehicle)
 }
 
-export async function createVehicle(payload: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'isActive'> & { isActive?: boolean }) {
-  const s = getSupabase();
-  const { data, error } = await s
-    .from('vehicles')
-    .insert({
-      owner_id: payload.ownerId,
-      plate: payload.plate,
-      model: payload.model,
-      year: payload.year,
-      color: payload.color,
-      renavam: payload.renavam,
-      photo: payload.photo ?? null,
-      is_active: payload.isActive ?? true,
-    })
-    .select('*')
-    .single();
-  if (error || !data) return { vehicle: null, error };
-  return { vehicle: mapVehicle(data as VehicleRow), error: null };
+export async function createVehicle(
+  payload: Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'isActive'> & {
+    isActive?: boolean
+  }
+) {
+  const { vehicle, error } = await createVehicleFromApi(payload)
+  if (error || !vehicle) return { vehicle: null, error }
+  return { vehicle: mapVehicle(vehicle as VehicleRow), error: null }
 }
 
-export async function updateVehicle(id: string, changes: Partial<Omit<Vehicle, 'id' | 'ownerId' | 'createdAt' | 'updatedAt'>>) {
-  const s = getSupabase();
-  const { data, error } = await s
-    .from('vehicles')
-    .update({
-      plate: changes.plate,
-      model: changes.model,
-      year: changes.year,
-      color: changes.color,
-      renavam: changes.renavam,
-      photo: changes.photo ?? null,
-      is_active: changes.isActive,
-    })
-    .eq('id', id)
-    .select('*')
-    .single();
-  if (error || !data) return { vehicle: null, error };
-  return { vehicle: mapVehicle(data as VehicleRow), error: null };
+export async function updateVehicle(
+  id: string,
+  changes: Partial<Omit<Vehicle, 'id' | 'ownerId' | 'createdAt' | 'updatedAt'>>
+) {
+  const { vehicle, error } = await updateVehicleFromApi(id, changes)
+  if (error || !vehicle) return { vehicle: null, error }
+  return { vehicle: mapVehicle(vehicle as VehicleRow), error: null }
 }
 
 export async function deleteVehicle(id: string) {
-  const s = getSupabase();
-  const { error } = await s
-    .from('vehicles')
-    .delete()
-    .eq('id', id);
-  return { error };
-}
-
-export async function getVehicleById(id: string): Promise<Vehicle | null> {
-  const s = getSupabase();
-  const { data, error } = await s
-    .from('vehicles')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle();
-  if (error || !data) return null;
-  return mapVehicle(data as VehicleRow);
+  return await deleteVehicleFromApi(id)
 }

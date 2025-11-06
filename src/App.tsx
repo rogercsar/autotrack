@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { useAuthStore } from './stores/authStore';
 import Layout from './components/layout/Layout';
 
 // Páginas de autenticação
@@ -27,7 +27,7 @@ import PublicVehicle from './pages/PublicVehicle';
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -42,7 +42,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Componente para rotas públicas (redirecionar se já logado)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useAuthStore();
 
   if (isLoading) {
     return (
@@ -56,90 +56,94 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const App: React.FC = () => {
+  const { checkUser } = useAuthStore();
+
+  useEffect(() => {
+    checkUser();
+  }, [checkUser]);
+
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
+    <Router>
+      <div className="App">
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+            success: {
+              duration: 3000,
+              iconTheme: {
+                primary: '#10B981',
+                secondary: '#fff',
               },
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#10B981',
-                  secondary: '#fff',
-                },
+            },
+            error: {
+              duration: 5000,
+              iconTheme: {
+                primary: '#EF4444',
+                secondary: '#fff',
               },
-              error: {
-                duration: 5000,
-                iconTheme: {
-                  primary: '#EF4444',
-                  secondary: '#fff',
-                },
-              },
-            }}
+            },
+          }}
+        />
+
+        <Routes>
+          {/* Rotas públicas */}
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
           />
-          
-          <Routes>
-            {/* Rotas públicas */}
-            <Route
-              path="/login"
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              }
-            />
-            <Route
-              path="/register"
-              element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              }
-            />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            }
+          />
 
-            {/* Rotas protegidas */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<Dashboard />} />
-          <Route path="vehicles" element={<Vehicles />} />
-          <Route path="vehicles/:id" element={<VehicleDetails />} />
-          <Route path="expenses" element={<Expenses />} />
-          <Route path="groups" element={<Groups />} />
-          <Route path="workshops" element={<Workshops />} />
-          <Route path="alerts" element={<Alerts />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="export" element={<ExportShare />} />
-          <Route path="share" element={<ExportShare />} />
-          <Route path="transfer" element={<VehicleTransfer />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="admin" element={<AdminDashboard />} />
-          <Route path="company" element={<CompanyDashboard />} />
-            </Route>
+          {/* Rotas protegidas */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="vehicles" element={<Vehicles />} />
+            <Route path="vehicles/:id" element={<VehicleDetails />} />
+            <Route path="expenses" element={<Expenses />} />
+            <Route path="groups" element={<Groups />} />
+            <Route path="workshops" element={<Workshops />} />
+            <Route path="alerts" element={<Alerts />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="export" element={<ExportShare />} />
+            <Route path="share" element={<ExportShare />} />
+            <Route path="transfer" element={<VehicleTransfer />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="admin" element={<AdminDashboard />} />
+            <Route path="company" element={<CompanyDashboard />} />
+          </Route>
 
-            {/* Rota pública para veículo */}
-            <Route path="/public/vehicle/:id" element={<PublicVehicle />} />
-            
-            {/* Rota 404 */}
-            <Route path="*" element={<div>Página não encontrada</div>} />
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+          {/* Rota pública para veículo */}
+          <Route path="/public/vehicle/:id" element={<PublicVehicle />} />
+
+          {/* Rota 404 */}
+          <Route path="*" element={<div>Página não encontrada</div>} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 

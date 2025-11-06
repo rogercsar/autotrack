@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../stores/authStore';
 import { mockUsers, mockCompanies, mockVehicles, mockExpenses } from '../../data/mockData';
 import { UserType, Company } from '../../types';
 import Card from '../../components/ui/Card';
@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 const AdminDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [companies, setCompanies] = useState<Company[]>(mockCompanies);
   const [isAddCompanyModalOpen, setIsAddCompanyModalOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);

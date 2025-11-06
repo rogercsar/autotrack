@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { getVehiclesByOwner } from '../services/vehicleService';
 import { getGroupsByUser } from '../services/groupService';
 import { getAlertsByUser, createAlert, resolveAlert, deleteAlert } from '../services/alertsService';
@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 const Alerts: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [alerts, setAlerts] = useState<EmergencyAlert[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedAlert, setSelectedAlert] = useState<EmergencyAlert | null>(null);

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 // import { getUserVehicles, mockUsers } from '../data/mockData';
 import { Vehicle, VehicleTransfer, User } from '../types';
 import Card from '../components/ui/Card';
@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 
 const VehicleTransferPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [transfers, setTransfers] = useState<VehicleTransfer[]>([]);
   const [profilesCache, setProfilesCache] = useState<Record<string, User>>({});

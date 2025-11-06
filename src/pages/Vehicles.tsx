@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { getVehiclesByOwner, createVehicle, updateVehicle, deleteVehicle } from '../services/vehicleService';
 import { Vehicle } from '../types';
 import Card from '../components/ui/Card';
@@ -89,7 +89,7 @@ const VehicleShareForm: React.FC<VehicleShareFormProps> = ({ vehicle, onClose })
 };
 
 const Vehicles: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

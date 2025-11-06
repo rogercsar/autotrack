@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { getVehiclesByOwner } from '../services/vehicleService';
 import { getExpensesByVehicleIds } from '../services/expenseService';
 import { countActiveAlertsByUser } from '../services/alertsService';
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);

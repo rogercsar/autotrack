@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { UserType } from '../types';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 const Settings: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
@@ -730,5 +730,3 @@ const DeleteAccountForm: React.FC<DeleteAccountFormProps> = ({ onConfirm, onCanc
 };
 
 export default Settings;
-
-

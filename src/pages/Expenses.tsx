@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { getVehiclesByOwner } from '../services/vehicleService';
 import { getExpensesByVehicleIds, createExpense, updateExpense, deleteExpense, uploadExpenseReceipt } from '../services/expenseService';
 import { Expense, ExpenseType } from '../types';
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 const Expenses: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

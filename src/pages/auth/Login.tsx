@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuthStore } from '../../stores/authStore';
 import { LoginData } from '../../types';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
@@ -9,7 +9,7 @@ import Card from '../../components/ui/Card';
 import { Car, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const { login, isLoading } = useAuth();
+  const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   

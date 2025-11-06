@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuthStore } from '../stores/authStore';
 import { getUserVehicles, mockExpenses } from '../data/mockData';
 import { Vehicle, Expense } from '../types';
 import Card from '../components/ui/Card';
@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 const Reports: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [vehicles] = useState<Vehicle[]>(getUserVehicles(user?.id || ''));
   const [expenses] = useState<Expense[]>(mockExpenses);
   const [selectedVehicle, setSelectedVehicle] = useState<string>('all');
@@ -560,5 +560,3 @@ const ReportFilters: React.FC<ReportFiltersProps> = ({
 };
 
 export default Reports;
-
-
