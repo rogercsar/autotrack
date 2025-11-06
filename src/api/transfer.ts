@@ -3,14 +3,13 @@ import { getSupabase } from '../lib/supabaseClient'
 export const getTransfersInvolved = async () => {
   const s = getSupabase()
   const { data: userData, error: userError } = await s.auth.getUser()
-  if (userError) throw userError
+  if (userError) return { data: null, error: userError }
   const userId = userData.user.id
   const { data, error } = await s
     .from('vehicle_transfers')
     .select('*')
     .or(`fromUserId.eq.${userId},toUserId.eq.${userId}`)
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export const createTransfer = async (
@@ -20,7 +19,7 @@ export const createTransfer = async (
 ) => {
   const s = getSupabase()
   const { data: userData, error: userError } = await s.auth.getUser()
-  if (userError) throw userError
+  if (userError) return { transfer: null, error: userError }
   const fromUserId = userData.user.id
   const { data, error } = await s
     .from('vehicle_transfers')
@@ -32,7 +31,6 @@ export const createTransfer = async (
       status: 'pending',
     })
     .select()
-  if (error) throw error
   return { transfer: data?.[0], error }
 }
 
@@ -44,7 +42,6 @@ export const acceptTransfer = async (transferId: string) => {
     .eq('id', transferId)
     .select()
   // TODO: Add logic to change vehicle owner
-  if (error) throw error
   return { transfer: data?.[0], error }
 }
 
@@ -55,7 +52,6 @@ export const rejectTransfer = async (transferId: string) => {
     .update({ status: 'rejected', completedAt: new Date() })
     .eq('id', transferId)
     .select()
-  if (error) throw error
   return { transfer: data?.[0], error }
 }
 

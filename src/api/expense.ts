@@ -7,14 +7,12 @@ export const getExpensesByVehicleIds = async (vehicleIds: string[]) => {
     .from('expenses')
     .select('*')
     .in('vehicleId', vehicleIds)
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export const createExpense = async (expenseData: Partial<Expense>) => {
   const s = getSupabase()
   const { data, error } = await s.from('expenses').insert(expenseData).select()
-  if (error) throw error
   return { expense: data?.[0], error }
 }
 
@@ -28,7 +26,6 @@ export const updateExpense = async (
     .update(expenseData)
     .eq('id', expenseId)
     .select()
-  if (error) throw error
   return { expense: data?.[0], error }
 }
 

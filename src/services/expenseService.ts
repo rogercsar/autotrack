@@ -45,8 +45,8 @@ function mapExpense(row: ExpenseRow): Expense {
 export async function getExpensesByVehicleIds(
   vehicleIds: string[]
 ): Promise<Expense[]> {
-  const data = await getExpensesByVehicleIdsFromApi(vehicleIds)
-  if (!data) return []
+  const { data, error } = await getExpensesByVehicleIdsFromApi(vehicleIds)
+  if (error || !data) return []
   return (data as ExpenseRow[]).map(mapExpense)
 }
 

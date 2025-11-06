@@ -32,8 +32,8 @@ function mapTransfer(row: VehicleTransferRow): VehicleTransfer {
 }
 
 export async function getTransfersInvolved(): Promise<VehicleTransfer[]> {
-  const data = await getTransfersInvolvedFromApi()
-  if (!data) return []
+  const { data, error } = await getTransfersInvolvedFromApi()
+  if (error || !data) return []
   return (data as VehicleTransferRow[]).map(mapTransfer)
 }
 

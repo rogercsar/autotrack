@@ -7,8 +7,7 @@ export const getAlertsByUser = async (userId: string) => {
     .from('emergency_alerts')
     .select('*')
     .eq('userId', userId)
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export const createAlert = async (
@@ -19,7 +18,6 @@ export const createAlert = async (
     .from('emergency_alerts')
     .insert(alertData)
     .select()
-  if (error) throw error
   return { alert: data?.[0], error }
 }
 
@@ -30,7 +28,6 @@ export const resolveAlert = async (alertId: string) => {
     .update({ isActive: false, resolvedAt: new Date() })
     .eq('id', alertId)
     .select()
-  if (error) throw error
   return { alert: data?.[0], error }
 }
 
@@ -47,6 +44,5 @@ export const countActiveAlertsByUser = async (userId: string) => {
     .select('*', { count: 'exact', head: true })
     .eq('userId', userId)
     .eq('isActive', true)
-  if (error) throw error
-  return count || 0
+  return { count, error }
 }

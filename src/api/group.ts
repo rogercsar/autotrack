@@ -7,8 +7,7 @@ export const getGroupsByUser = async (userId: string) => {
     .from('groups')
     .select('*, members:group_members(*)')
     .or(`ownerId.eq.${userId},members.userId.eq.${userId}`)
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export const createGroup = async (
@@ -20,7 +19,6 @@ export const createGroup = async (
     .from('groups')
     .insert({ ...groupData, ownerId })
     .select('*, members:group_members(*)')
-  if (error) throw error
   return { group: data?.[0], error }
 }
 
@@ -34,7 +32,6 @@ export const updateGroup = async (
     .update(groupData)
     .eq('id', groupId)
     .select('*, members:group_members(*)')
-  if (error) throw error
   return { group: data?.[0], error }
 }
 
@@ -54,7 +51,6 @@ export const addMember = async (
     .from('group_members')
     .insert({ groupId, userId, role })
     .select()
-  if (error) throw error
   return { member: data?.[0], error }
 }
 

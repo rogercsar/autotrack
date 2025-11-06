@@ -44,13 +44,15 @@ function mapAlert(row: AlertRow): EmergencyAlert {
 export async function getAlertsByUser(
   userId: string
 ): Promise<EmergencyAlert[]> {
-  const data = await getAlertsByUserFromApi(userId)
-  if (!data) return []
+  const { data, error } = await getAlertsByUserFromApi(userId)
+  if (error || !data) return []
   return (data as AlertRow[]).map(mapAlert)
 }
 
 export async function countActiveAlertsByUser(userId: string): Promise<number> {
-  return await countActiveAlertsByUserFromApi(userId)
+  const { count, error } = await countActiveAlertsByUserFromApi(userId)
+  if (error || typeof count !== 'number') return 0
+  return count
 }
 
 export async function createAlert(

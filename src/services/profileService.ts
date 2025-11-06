@@ -30,18 +30,17 @@ const toUser = (row: ProfileRow): User => ({
 })
 
 export async function getProfileById(id: string): Promise<User | null> {
-  const data = await getProfileByIdFromApi(id)
-  if (!data) return null
+  const { data, error } = await getProfileByIdFromApi(id)
+  if (error || !data) return null
   return toUser(data as ProfileRow)
 }
 
 export async function updateUserType(id: string, userType: UserType) {
-  const data = await updateUserTypeFromApi(id, userType)
-  return { data }
+  return await updateUserTypeFromApi(id, userType)
 }
 
 export async function getProfileByEmail(email: string): Promise<User | null> {
-  const data = await getProfileByEmailFromApi(email)
-  if (!data) return null
+  const { data, error } = await getProfileByEmailFromApi(email)
+  if (error || !data) return null
   return toUser(data as ProfileRow)
 }

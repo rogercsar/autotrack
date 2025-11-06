@@ -7,14 +7,12 @@ export const getVehiclesByOwner = async (ownerId: string) => {
     .from('vehicles')
     .select('*')
     .eq('ownerId', ownerId)
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export const createVehicle = async (vehicleData: Partial<Vehicle>) => {
   const s = getSupabase()
   const { data, error } = await s.from('vehicles').insert(vehicleData).select()
-  if (error) throw error
   return { vehicle: data?.[0], error }
 }
 
@@ -28,7 +26,6 @@ export const updateVehicle = async (
     .update(vehicleData)
     .eq('id', vehicleId)
     .select()
-  if (error) throw error
   return { vehicle: data?.[0], error }
 }
 

@@ -51,8 +51,8 @@ function mapGroup(row: GroupRow): Group {
 }
 
 export async function getGroupsByUser(userId: string): Promise<Group[]> {
-  const data = await getGroupsByUserFromApi(userId)
-  if (!data) return []
+  const { data, error } = await getGroupsByUserFromApi(userId)
+  if (error || !data) return []
   return (data as GroupRow[]).map(mapGroup)
 }
 

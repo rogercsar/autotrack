@@ -8,8 +8,7 @@ export const getProfileById = async (userId: string) => {
     .select('*')
     .eq('id', userId)
     .single()
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export const getProfileByEmail = async (email: string) => {
@@ -19,8 +18,7 @@ export const getProfileByEmail = async (email: string) => {
     .select('*')
     .eq('email', email)
     .single()
-  if (error) throw error
-  return data
+  return { data, error }
 }
 
 export const updateUserType = async (userId: string, userType: UserType) => {
@@ -29,6 +27,5 @@ export const updateUserType = async (userId: string, userType: UserType) => {
     .from('profiles')
     .update({ userType })
     .eq('id', userId)
-  if (error) throw error
-  return data
+  return { data, error }
 }

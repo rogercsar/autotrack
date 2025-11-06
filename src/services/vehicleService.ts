@@ -37,8 +37,8 @@ function mapVehicle(row: VehicleRow): Vehicle {
 }
 
 export async function getVehiclesByOwner(ownerId: string): Promise<Vehicle[]> {
-  const data = await getVehiclesByOwnerFromApi(ownerId)
-  if (!data) return []
+  const { data, error } = await getVehiclesByOwnerFromApi(ownerId)
+  if (error || !data) return []
   return (data as VehicleRow[]).map(mapVehicle)
 }
 
