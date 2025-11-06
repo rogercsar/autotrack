@@ -1,34 +1,37 @@
-import { getSupabase } from '../lib/supabaseClient';
-import { Company } from '../types';
+import { getSupabase } from '../lib/supabaseClient'
+import { Company } from '../types'
 
 type CompanyRow = {
-  id: string;
-  name: string;
-  type: 'workshop' | 'dealership' | 'other';
-  description: string | null;
-  logo: string | null;
-  phone: string | null;
-  email: string | null;
-  street: string | null;
-  number: string | null;
-  neighborhood: string | null;
-  city: string | null;
-  state: string | null;
-  zip_code: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  services: string[] | null;
-  rating: number | null;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-};
+  id: string
+  name: string
+  type: 'workshop' | 'dealership' | 'other'
+  description: string | null
+  logo: string | null
+  phone: string | null
+  email: string | null
+  street: string | null
+  number: string | null
+  neighborhood: string | null
+  city: string | null
+  state: string | null
+  zip_code: string | null
+  latitude: number | null
+  longitude: number | null
+  services: string[] | null
+  rating: number | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
 
 function mapCompany(row: CompanyRow): Company {
   return {
     id: row.id,
     name: row.name,
-    type: row.type === 'workshop' || row.type === 'dealership' ? row.type : 'workshop',
+    type:
+      row.type === 'workshop' || row.type === 'dealership'
+        ? row.type
+        : 'workshop',
     description: row.description || '',
     logo: row.logo || undefined,
     phone: row.phone || '',
@@ -48,30 +51,34 @@ function mapCompany(row: CompanyRow): Company {
     isActive: row.is_active,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
-  };
+  }
 }
 
 export async function getCompanies() {
-  const s = getSupabase();
+  const s = getSupabase()
   const { data, error } = await s
     .from('companies')
     .select('*')
     .eq('is_active', true)
-    .order('rating', { ascending: false });
-  if (error || !data) return [];
-  return (data as CompanyRow[]).map(mapCompany);
+    .order('rating', { ascending: false })
+  if (error || !data) return []
+  return (data as CompanyRow[]).map(mapCompany)
 }
 
 export async function getCompanyById(id: string) {
-  const s = getSupabase();
-  const { data, error } = await s.from('companies').select('*').eq('id', id).single();
-  if (error || !data) return null;
-  return mapCompany(data as CompanyRow);
+  const s = getSupabase()
+  const { data, error } = await s
+    .from('companies')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error || !data) return null
+  return mapCompany(data as CompanyRow)
 }
 
 export async function searchCompanies(term: string) {
-  const s = getSupabase();
-  const ilike = `%${term}%`;
+  const s = getSupabase()
+  const ilike = `%${term}%`
   const { data, error } = await s
     .from('companies')
     .select('*')
@@ -85,7 +92,7 @@ export async function searchCompanies(term: string) {
       ].join(',')
     )
     .eq('is_active', true)
-    .order('rating', { ascending: false });
-  if (error || !data) return [];
-  return (data as CompanyRow[]).map(mapCompany);
+    .order('rating', { ascending: false })
+  if (error || !data) return []
+  return (data as CompanyRow[]).map(mapCompany)
 }

@@ -1,83 +1,92 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { getVehiclesByOwner } from '../services/vehicleService';
-import { getGroupsByUser } from '../services/groupService';
-import { getAlertsByUser, createAlert, resolveAlert, deleteAlert } from '../services/alertsService';
-import { EmergencyAlert, AlertType, Vehicle, Group } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import { 
-  AlertTriangle, 
-  Plus, 
-  MapPin, 
+import React, { useState, useMemo, useEffect } from 'react'
+import { useAuthStore } from '../stores/authStore'
+import { getVehiclesByOwner } from '../services/vehicleService'
+import { getGroupsByUser } from '../services/groupService'
+import {
+  getAlertsByUser,
+  createAlert,
+  resolveAlert,
+  deleteAlert,
+} from '../services/alertsService'
+import { EmergencyAlert, AlertType, Vehicle, Group } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import {
+  AlertTriangle,
+  Plus,
+  MapPin,
   Clock,
   CheckCircle,
   XCircle,
   Users,
   Navigation,
-  Send
-} from 'lucide-react';
+  Send,
+} from 'lucide-react'
 
 const Alerts: React.FC = () => {
-  const { user } = useAuth();
-  const [alerts, setAlerts] = useState<EmergencyAlert[]>([]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedAlert, setSelectedAlert] = useState<EmergencyAlert | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'active' | 'resolved'>('all');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const { user } = useAuthStore()
+  const [alerts, setAlerts] = useState<EmergencyAlert[]>([])
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedAlert, setSelectedAlert] = useState<EmergencyAlert | null>(
+    null
+  )
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+  const [filter, setFilter] = useState<'all' | 'active' | 'resolved'>('all')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [groups, setGroups] = useState<Group[]>([])
 
   useEffect(() => {
-    let active = true;
+    let active = true
     async function load() {
       if (!user?.id) {
         if (active) {
-          setVehicles([]);
-          setAlerts([]);
-          setGroups([]);
-          setLoading(false);
+          setVehicles([])
+          setAlerts([])
+          setGroups([])
+          setLoading(false)
         }
-        return;
+        return
       }
-      setLoading(true);
-      setError(null);
+      setLoading(true)
+      setError(null)
       try {
         const [vs, gs, as] = await Promise.all([
           getVehiclesByOwner(user.id),
           getGroupsByUser(user.id),
           getAlertsByUser(user.id),
-        ]);
-        if (!active) return;
-        setVehicles(vs);
-        setGroups(gs);
-        setAlerts(as);
+        ])
+        if (!active) return
+        setVehicles(vs)
+        setGroups(gs)
+        setAlerts(as)
       } catch (e: any) {
-        setError(e?.message || 'Falha ao carregar alertas');
+        setError(e?.message || 'Falha ao carregar alertas')
       } finally {
-        if (active) setLoading(false);
+        if (active) setLoading(false)
       }
     }
-    load();
-    return () => { active = false; };
-  }, [user?.id]);
+    load()
+    return () => {
+      active = false
+    }
+  }, [user?.id])
 
   // Filtrar alertas
   const filteredAlerts = useMemo(() => {
-    let filtered = alerts.filter(alert => alert.userId === user?.id);
-    
+    let filtered = alerts.filter((alert) => alert.userId === user?.id)
+
     switch (filter) {
       case 'active':
-        return filtered.filter(alert => alert.isActive);
+        return filtered.filter((alert) => alert.isActive)
       case 'resolved':
-        return filtered.filter(alert => !alert.isActive);
+        return filtered.filter((alert) => !alert.isActive)
       default:
-        return filtered;
+        return filtered
     }
-  }, [alerts, user?.id, filter]);
+  }, [alerts, user?.id, filter])
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
@@ -85,9 +94,9 @@ const Alerts: React.FC = () => {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
-  };
+      minute: '2-digit',
+    }).format(new Date(date))
+  }
 
   const getAlertTypeLabel = (type: AlertType) => {
     const types: Record<AlertType, string> = {
@@ -95,10 +104,10 @@ const Alerts: React.FC = () => {
       mechanical_problem: 'Problema Mecânico',
       accident: 'Acidente',
       breakdown: 'Pane',
-      other: 'Outro'
-    };
-    return types[type] || type;
-  };
+      other: 'Outro',
+    }
+    return types[type] || type
+  }
 
   const getAlertTypeColor = (type: AlertType) => {
     const colors: Record<AlertType, string> = {
@@ -106,25 +115,25 @@ const Alerts: React.FC = () => {
       mechanical_problem: 'bg-orange-100 text-orange-800',
       accident: 'bg-red-100 text-red-800',
       breakdown: 'bg-red-100 text-red-800',
-      other: 'bg-gray-100 text-gray-800'
-    };
-    return colors[type] || 'bg-gray-100 text-gray-800';
-  };
+      other: 'bg-gray-100 text-gray-800',
+    }
+    return colors[type] || 'bg-gray-100 text-gray-800'
+  }
 
   const getAlertTypeIcon = (type: AlertType) => {
     switch (type) {
       case AlertType.FLAT_TIRE:
-        return '🚗💥';
+        return '🚗💥'
       case AlertType.MECHANICAL_PROBLEM:
-        return '🔧';
+        return '🔧'
       case AlertType.ACCIDENT:
-        return '🚨';
+        return '🚨'
       case AlertType.BREAKDOWN:
-        return '⚡';
+        return '⚡'
       default:
-        return '⚠️';
+        return '⚠️'
     }
-  };
+  }
 
   const handleCreateAlert = async (alertData: Partial<EmergencyAlert>) => {
     try {
@@ -136,56 +145,60 @@ const Alerts: React.FC = () => {
         location: alertData.location || {
           latitude: -23.5505,
           longitude: -46.6333,
-          address: 'Localização não disponível'
+          address: 'Localização não disponível',
         },
         isActive: true,
-      } as Omit<EmergencyAlert, 'id' | 'createdAt' | 'resolvedAt' | 'sentTo'>;
-      const { alert, error } = await createAlert(payload);
+      } as Omit<EmergencyAlert, 'id' | 'createdAt' | 'resolvedAt' | 'sentTo'>
+      const { alert, error } = await createAlert(payload)
       if (error || !alert) {
-        setError(error?.message || 'Falha ao criar alerta');
-        return;
+        setError(error?.message || 'Falha ao criar alerta')
+        return
       }
-      setAlerts([...alerts, alert]);
-      setIsCreateModalOpen(false);
+      setAlerts([...alerts, alert])
+      setIsCreateModalOpen(false)
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao criar alerta');
+      setError(e?.message || 'Erro inesperado ao criar alerta')
     }
-  };
+  }
 
   const handleResolveAlert = async (alertId: string) => {
     try {
-      const { alert, error } = await resolveAlert(alertId);
+      const { alert, error } = await resolveAlert(alertId)
       if (error || !alert) {
-        setError(error?.message || 'Falha ao resolver alerta');
-        return;
+        setError(error?.message || 'Falha ao resolver alerta')
+        return
       }
-      setAlerts(alerts.map(a => a.id === alertId ? alert : a));
+      setAlerts(alerts.map((a) => (a.id === alertId ? alert : a)))
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao resolver alerta');
+      setError(e?.message || 'Erro inesperado ao resolver alerta')
     }
-  };
+  }
 
   const handleDeleteAlert = async (alertId: string) => {
-    if (!window.confirm('Tem certeza que deseja excluir este alerta?')) return;
+    if (!window.confirm('Tem certeza que deseja excluir este alerta?')) return
     try {
-      const { error } = await deleteAlert(alertId);
+      const { error } = await deleteAlert(alertId)
       if (error) {
-        setError(error.message || 'Falha ao excluir alerta');
-        return;
+        setError(error.message || 'Falha ao excluir alerta')
+        return
       }
-      setAlerts(alerts.filter(alert => alert.id !== alertId));
+      setAlerts(alerts.filter((alert) => alert.id !== alertId))
     } catch (e: any) {
-      setError(e?.message || 'Erro inesperado ao excluir alerta');
+      setError(e?.message || 'Erro inesperado ao excluir alerta')
     }
-  };
+  }
 
   const openDetailsModal = (alert: EmergencyAlert) => {
-    setSelectedAlert(alert);
-    setIsDetailsModalOpen(true);
-  };
+    setSelectedAlert(alert)
+    setIsDetailsModalOpen(true)
+  }
 
   // Simular obtenção de localização atual
-  const getCurrentLocation = (): Promise<{ latitude: number; longitude: number; address: string }> => {
+  const getCurrentLocation = (): Promise<{
+    latitude: number
+    longitude: number
+    address: string
+  }> => {
     return new Promise((resolve) => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -193,34 +206,36 @@ const Alerts: React.FC = () => {
             resolve({
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
-              address: 'Localização atual'
-            });
+              address: 'Localização atual',
+            })
           },
           () => {
             // Fallback para São Paulo se não conseguir obter localização
             resolve({
               latitude: -23.5505,
               longitude: -46.6333,
-              address: 'São Paulo, SP (localização aproximada)'
-            });
+              address: 'São Paulo, SP (localização aproximada)',
+            })
           }
-        );
+        )
       } else {
         resolve({
           latitude: -23.5505,
           longitude: -46.6333,
-          address: 'São Paulo, SP (localização não disponível)'
-        });
+          address: 'São Paulo, SP (localização não disponível)',
+        })
       }
-    });
-  };
+    })
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Alertas de Emergência</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Alertas de Emergência
+          </h1>
           <p className="text-gray-600 mt-1">
             Gerencie alertas de emergência e notifique seus contatos
           </p>
@@ -246,9 +261,14 @@ const Alerts: React.FC = () => {
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Alertas Ativos</p>
+              <p className="text-sm font-medium text-gray-600">
+                Alertas Ativos
+              </p>
               <p className="text-2xl font-bold text-gray-900">
-                {alerts.filter(a => a.userId === user?.id && a.isActive).length}
+                {
+                  alerts.filter((a) => a.userId === user?.id && a.isActive)
+                    .length
+                }
               </p>
             </div>
           </div>
@@ -262,7 +282,10 @@ const Alerts: React.FC = () => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Resolvidos</p>
               <p className="text-2xl font-bold text-gray-900">
-                {alerts.filter(a => a.userId === user?.id && !a.isActive).length}
+                {
+                  alerts.filter((a) => a.userId === user?.id && !a.isActive)
+                    .length
+                }
               </p>
             </div>
           </div>
@@ -332,13 +355,14 @@ const Alerts: React.FC = () => {
           <div className="text-center py-12">
             <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {filter === 'all' ? 'Nenhum alerta criado' : 'Nenhum alerta encontrado'}
+              {filter === 'all'
+                ? 'Nenhum alerta criado'
+                : 'Nenhum alerta encontrado'}
             </h3>
             <p className="text-gray-500 mb-6">
-              {filter === 'all' 
+              {filter === 'all'
                 ? 'Crie seu primeiro alerta de emergência'
-                : 'Ajuste os filtros para ver mais alertas'
-              }
+                : 'Ajuste os filtros para ver mais alertas'}
             </p>
             {filter === 'all' && (
               <Button onClick={() => setIsCreateModalOpen(true)}>
@@ -351,7 +375,7 @@ const Alerts: React.FC = () => {
       ) : (
         <div className="space-y-4">
           {filteredAlerts.map((alert) => {
-            const vehicle = vehicles.find(v => v.id === alert.vehicleId);
+            const vehicle = vehicles.find((v) => v.id === alert.vehicleId)
             return (
               <Card key={alert.id}>
                 <div className="flex items-start justify-between">
@@ -361,14 +385,18 @@ const Alerts: React.FC = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getAlertTypeColor(alert.type)}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getAlertTypeColor(alert.type)}`}
+                        >
                           {getAlertTypeLabel(alert.type)}
                         </span>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          alert.isActive 
-                            ? 'bg-red-100 text-red-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            alert.isActive
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}
+                        >
                           {alert.isActive ? 'Ativo' : 'Resolvido'}
                         </span>
                       </div>
@@ -390,7 +418,7 @@ const Alerts: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="ghost"
@@ -419,7 +447,7 @@ const Alerts: React.FC = () => {
                   </div>
                 </div>
               </Card>
-            );
+            )
           })}
         </div>
       )}
@@ -443,8 +471,8 @@ const Alerts: React.FC = () => {
       <Modal
         isOpen={isDetailsModalOpen}
         onClose={() => {
-          setIsDetailsModalOpen(false);
-          setSelectedAlert(null);
+          setIsDetailsModalOpen(false)
+          setSelectedAlert(null)
         }}
         title="Detalhes do Alerta"
         size="lg"
@@ -452,32 +480,41 @@ const Alerts: React.FC = () => {
         {selectedAlert && (
           <AlertDetails
             alert={selectedAlert}
-            vehicle={vehicles.find(v => v.id === selectedAlert.vehicleId)}
+            vehicle={vehicles.find((v) => v.id === selectedAlert.vehicleId)}
             onResolve={() => {
-              handleResolveAlert(selectedAlert.id);
-              setIsDetailsModalOpen(false);
-              setSelectedAlert(null);
+              handleResolveAlert(selectedAlert.id)
+              setIsDetailsModalOpen(false)
+              setSelectedAlert(null)
             }}
             onClose={() => {
-              setIsDetailsModalOpen(false);
-              setSelectedAlert(null);
+              setIsDetailsModalOpen(false)
+              setSelectedAlert(null)
             }}
           />
         )}
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente do formulário de alerta
 interface AlertFormProps {
-  vehicles: Vehicle[];
-  onSubmit: (data: Partial<EmergencyAlert>) => void;
-  onCancel: () => void;
-  getCurrentLocation: () => Promise<{ latitude: number; longitude: number; address: string }>;
+  vehicles: Vehicle[]
+  onSubmit: (data: Partial<EmergencyAlert>) => void
+  onCancel: () => void
+  getCurrentLocation: () => Promise<{
+    latitude: number
+    longitude: number
+    address: string
+  }>
 }
 
-const AlertForm: React.FC<AlertFormProps> = ({ vehicles, onSubmit, onCancel, getCurrentLocation }) => {
+const AlertForm: React.FC<AlertFormProps> = ({
+  vehicles,
+  onSubmit,
+  onCancel,
+  getCurrentLocation,
+}) => {
   const [formData, setFormData] = useState({
     vehicleId: '',
     type: AlertType.OTHER,
@@ -485,48 +522,52 @@ const AlertForm: React.FC<AlertFormProps> = ({ vehicles, onSubmit, onCancel, get
     location: {
       latitude: 0,
       longitude: 0,
-      address: ''
-    }
-  });
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+      address: '',
+    },
+  })
+  const [isGettingLocation, setIsGettingLocation] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (isGettingLocation) {
-      setIsGettingLocation(true);
+      setIsGettingLocation(true)
       try {
-        const location = await getCurrentLocation();
-        setFormData(prev => ({ ...prev, location }));
+        const location = await getCurrentLocation()
+        setFormData((prev) => ({ ...prev, location }))
       } catch (error) {
-        console.error('Erro ao obter localização:', error);
+        console.error('Erro ao obter localização:', error)
       } finally {
-        setIsGettingLocation(false);
+        setIsGettingLocation(false)
       }
     }
 
-    onSubmit(formData);
-  };
+    onSubmit(formData)
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleGetLocation = async () => {
-    setIsGettingLocation(true);
+    setIsGettingLocation(true)
     try {
-      const location = await getCurrentLocation();
-      setFormData(prev => ({ ...prev, location }));
+      const location = await getCurrentLocation()
+      setFormData((prev) => ({ ...prev, location }))
     } catch (error) {
-      console.error('Erro ao obter localização:', error);
+      console.error('Erro ao obter localização:', error)
     } finally {
-      setIsGettingLocation(false);
+      setIsGettingLocation(false)
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -542,7 +583,7 @@ const AlertForm: React.FC<AlertFormProps> = ({ vehicles, onSubmit, onCancel, get
           required
         >
           <option value="">Selecione um veículo</option>
-          {vehicles.map(vehicle => (
+          {vehicles.map((vehicle) => (
             <option key={vehicle.id} value={vehicle.id}>
               {vehicle.model} - {vehicle.plate}
             </option>
@@ -561,7 +602,7 @@ const AlertForm: React.FC<AlertFormProps> = ({ vehicles, onSubmit, onCancel, get
           className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           required
         >
-          {Object.values(AlertType).map(type => (
+          {Object.values(AlertType).map((type) => (
             <option key={type} value={type}>
               {type === 'flat_tire' && 'Pneu Furado'}
               {type === 'mechanical_problem' && 'Problema Mecânico'}
@@ -618,10 +659,13 @@ const AlertForm: React.FC<AlertFormProps> = ({ vehicles, onSubmit, onCancel, get
         <div className="flex">
           <AlertTriangle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
           <div>
-            <h4 className="text-sm font-medium text-yellow-800">Aviso Importante</h4>
+            <h4 className="text-sm font-medium text-yellow-800">
+              Aviso Importante
+            </h4>
             <p className="text-sm text-yellow-700 mt-1">
-              Este alerta será enviado para todos os membros dos seus grupos e contato de emergência.
-              Use apenas em situações reais de emergência.
+              Este alerta será enviado para todos os membros dos seus grupos e
+              contato de emergência. Use apenas em situações reais de
+              emergência.
             </p>
           </div>
         </div>
@@ -637,27 +681,32 @@ const AlertForm: React.FC<AlertFormProps> = ({ vehicles, onSubmit, onCancel, get
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Componente de detalhes do alerta
 interface AlertDetailsProps {
-  alert: EmergencyAlert;
-  vehicle?: Vehicle;
-  onResolve: () => void;
-  onClose: () => void;
+  alert: EmergencyAlert
+  vehicle?: Vehicle
+  onResolve: () => void
+  onClose: () => void
 }
 
-const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, onClose }) => {
+const AlertDetails: React.FC<AlertDetailsProps> = ({
+  alert,
+  vehicle,
+  onResolve,
+  onClose,
+}) => {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
-  };
+      minute: '2-digit',
+    }).format(new Date(date))
+  }
 
   const getAlertTypeLabel = (type: AlertType) => {
     const types: Record<AlertType, string> = {
@@ -665,21 +714,25 @@ const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, 
       mechanical_problem: 'Problema Mecânico',
       accident: 'Acidente',
       breakdown: 'Pane',
-      other: 'Outro'
-    };
-    return types[type] || type;
-  };
+      other: 'Outro',
+    }
+    return types[type] || type
+  }
 
   return (
     <div className="space-y-6">
       {/* Informações do alerta */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações do Alerta</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Informações do Alerta
+          </h3>
           <div className="space-y-3">
             <div>
               <p className="text-sm font-medium text-gray-600">Tipo</p>
-              <p className="text-lg text-gray-900">{getAlertTypeLabel(alert.type)}</p>
+              <p className="text-lg text-gray-900">
+                {getAlertTypeLabel(alert.type)}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Descrição</p>
@@ -687,11 +740,13 @@ const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, 
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Status</p>
-              <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
-                alert.isActive 
-                  ? 'bg-red-100 text-red-800' 
-                  : 'bg-green-100 text-green-800'
-              }`}>
+              <span
+                className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                  alert.isActive
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-green-100 text-green-800'
+                }`}
+              >
                 {alert.isActive ? 'Ativo' : 'Resolvido'}
               </span>
             </div>
@@ -701,7 +756,9 @@ const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, 
             </div>
             {alert.resolvedAt && (
               <div>
-                <p className="text-sm font-medium text-gray-600">Resolvido em</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Resolvido em
+                </p>
                 <p className="text-gray-900">{formatDate(alert.resolvedAt)}</p>
               </div>
             )}
@@ -709,7 +766,9 @@ const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, 
         </Card>
 
         <Card>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações do Veículo</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Informações do Veículo
+          </h3>
           {vehicle ? (
             <div className="space-y-3">
               <div>
@@ -737,7 +796,9 @@ const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, 
 
       {/* Localização */}
       <Card>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Localização</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          Localização
+        </h3>
         <div className="space-y-3">
           <div>
             <p className="text-sm font-medium text-gray-600">Endereço</p>
@@ -749,11 +810,15 @@ const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-600">Latitude</p>
-              <p className="text-gray-900">{alert.location.latitude.toFixed(6)}</p>
+              <p className="text-gray-900">
+                {alert.location.latitude.toFixed(6)}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Longitude</p>
-              <p className="text-gray-900">{alert.location.longitude.toFixed(6)}</p>
+              <p className="text-gray-900">
+                {alert.location.longitude.toFixed(6)}
+              </p>
             </div>
           </div>
         </div>
@@ -772,7 +837,7 @@ const AlertDetails: React.FC<AlertDetailsProps> = ({ alert, vehicle, onResolve, 
         )}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Alerts;
+export default Alerts

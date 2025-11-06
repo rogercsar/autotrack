@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { mockVehicles, mockExpenses } from '../data/mockData';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import { 
-  Car, 
-  ArrowLeft, 
+import React, { useState, useMemo } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { mockVehicles, mockExpenses } from '../data/mockData'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import {
+  Car,
+  ArrowLeft,
   DollarSign,
   Calendar,
   MapPin,
@@ -14,40 +14,48 @@ import {
   Eye,
   EyeOff,
   User,
-  
-} from 'lucide-react';
+} from 'lucide-react'
 
 const PublicVehicle: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [showSensitiveData, setShowSensitiveData] = useState(false);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false)
+  const [showSensitiveData, setShowSensitiveData] = useState(false)
 
-  const vehicle = mockVehicles.find(v => v.id === id);
+  const vehicle = mockVehicles.find((v) => v.id === id)
 
   // Filtrar despesas do veículo
-  const vehicleExpenses = mockExpenses.filter(e => e.vehicleId === vehicle?.id);
-  
+  const vehicleExpenses = mockExpenses.filter(
+    (e) => e.vehicleId === vehicle?.id
+  )
+
   // Calcular estatísticas
   const stats = useMemo(() => {
-    if (!vehicle) return { totalExpenses: 0, thisMonth: 0, byType: {} };
-    
-    const totalExpenses = vehicleExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const thisMonth = vehicleExpenses.filter(e => {
-      const expenseDate = new Date(e.date);
-      const now = new Date();
-      return expenseDate.getMonth() === now.getMonth() && 
-             expenseDate.getFullYear() === now.getFullYear();
-    }).reduce((sum, e) => sum + e.amount, 0);
+    if (!vehicle) return { totalExpenses: 0, thisMonth: 0, byType: {} }
 
-    const byType = vehicleExpenses.reduce((acc, expense) => {
-      acc[expense.type] = (acc[expense.type] || 0) + expense.amount;
-      return acc;
-    }, {} as Record<string, number>);
+    const totalExpenses = vehicleExpenses.reduce((sum, e) => sum + e.amount, 0)
+    const thisMonth = vehicleExpenses
+      .filter((e) => {
+        const expenseDate = new Date(e.date)
+        const now = new Date()
+        return (
+          expenseDate.getMonth() === now.getMonth() &&
+          expenseDate.getFullYear() === now.getFullYear()
+        )
+      })
+      .reduce((sum, e) => sum + e.amount, 0)
 
-    return { totalExpenses, thisMonth, byType };
-  }, [vehicleExpenses, vehicle]);
+    const byType = vehicleExpenses.reduce(
+      (acc, expense) => {
+        acc[expense.type] = (acc[expense.type] || 0) + expense.amount
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    return { totalExpenses, thisMonth, byType }
+  }, [vehicleExpenses, vehicle])
 
   if (!vehicle) {
     return (
@@ -68,23 +76,23 @@ const PublicVehicle: React.FC = () => {
           </div>
         </Card>
       </div>
-    );
+    )
   }
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+      currency: 'BRL',
+    }).format(value)
+  }
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
-  };
+      year: 'numeric',
+    }).format(new Date(date))
+  }
 
   const getExpenseTypeLabel = (type: string) => {
     const types: Record<string, string> = {
@@ -94,10 +102,10 @@ const PublicVehicle: React.FC = () => {
       insurance: 'Seguro',
       ipva: 'IPVA',
       licensing: 'Licenciamento',
-      other: 'Outros'
-    };
-    return types[type] || type;
-  };
+      other: 'Outros',
+    }
+    return types[type] || type
+  }
 
   const getExpenseTypeColor = (type: string) => {
     const colors: Record<string, string> = {
@@ -107,10 +115,10 @@ const PublicVehicle: React.FC = () => {
       insurance: 'bg-green-100 text-green-800',
       ipva: 'bg-purple-100 text-purple-800',
       licensing: 'bg-yellow-100 text-yellow-800',
-      other: 'bg-gray-100 text-gray-800'
-    };
-    return colors[type] || 'bg-gray-100 text-gray-800';
-  };
+      other: 'bg-gray-100 text-gray-800',
+    }
+    return colors[type] || 'bg-gray-100 text-gray-800'
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -124,7 +132,9 @@ const PublicVehicle: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold">AutoTrack</h1>
-                <p className="text-sm opacity-90">Gestão Veicular Inteligente</p>
+                <p className="text-sm opacity-90">
+                  Gestão Veicular Inteligente
+                </p>
               </div>
             </div>
             <div className="flex space-x-2">
@@ -154,7 +164,8 @@ const PublicVehicle: React.FC = () => {
           <div className="flex items-center justify-center space-x-2">
             <Star className="w-5 h-5 text-yellow-600" />
             <p className="text-sm text-yellow-800">
-              <strong>Gostou do que viu?</strong> Crie sua conta no AutoTrack para gerenciar seu veículo!
+              <strong>Gostou do que viu?</strong> Crie sua conta no AutoTrack
+              para gerenciar seu veículo!
             </p>
             <Button
               size="sm"
@@ -184,19 +195,27 @@ const PublicVehicle: React.FC = () => {
                 </div>
               )}
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-900 mb-2">{vehicle.model}</h2>
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  {vehicle.model}
+                </h2>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600">Placa</p>
-                    <p className="font-semibold text-gray-900">{vehicle.plate}</p>
+                    <p className="font-semibold text-gray-900">
+                      {vehicle.plate}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">Ano</p>
-                    <p className="font-semibold text-gray-900">{vehicle.year}</p>
+                    <p className="font-semibold text-gray-900">
+                      {vehicle.year}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">Cor</p>
-                    <p className="font-semibold text-gray-900">{vehicle.color}</p>
+                    <p className="font-semibold text-gray-900">
+                      {vehicle.color}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">RENAVAM</p>
@@ -206,7 +225,11 @@ const PublicVehicle: React.FC = () => {
                         onClick={() => setShowSensitiveData(!showSensitiveData)}
                         className="ml-2 text-gray-400 hover:text-gray-600"
                       >
-                        {showSensitiveData ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showSensitiveData ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </button>
                     </p>
                   </div>
@@ -268,7 +291,9 @@ const PublicVehicle: React.FC = () => {
           {/* Despesas recentes */}
           <Card>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Despesas Recentes</h2>
+              <h2 className="text-xl font-semibold text-gray-900">
+                Despesas Recentes
+              </h2>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-500">
                   {showSensitiveData ? 'Dados completos' : 'Dados limitados'}
@@ -277,11 +302,15 @@ const PublicVehicle: React.FC = () => {
                   onClick={() => setShowSensitiveData(!showSensitiveData)}
                   className="text-gray-400 hover:text-gray-600"
                 >
-                  {showSensitiveData ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showSensitiveData ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
-            
+
             {vehicleExpenses.length === 0 ? (
               <div className="text-center py-8">
                 <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -295,14 +324,19 @@ const PublicVehicle: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {vehicleExpenses.slice(0, 5).map((expense) => (
-                  <div key={expense.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div
+                    key={expense.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center space-x-4">
                       <div className="p-2 bg-gray-100 rounded-lg">
                         <DollarSign className="w-5 h-5 text-gray-600" />
                       </div>
                       <div>
                         <div className="flex items-center space-x-2 mb-1">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getExpenseTypeColor(expense.type)}`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getExpenseTypeColor(expense.type)}`}
+                          >
                             {getExpenseTypeLabel(expense.type)}
                           </span>
                           <span className="text-sm text-gray-500">
@@ -310,7 +344,9 @@ const PublicVehicle: React.FC = () => {
                           </span>
                         </div>
                         <p className="font-medium text-gray-900">
-                          {showSensitiveData ? expense.description : 'Despesa registrada'}
+                          {showSensitiveData
+                            ? expense.description
+                            : 'Despesa registrada'}
                         </p>
                         {expense.location && showSensitiveData && (
                           <p className="text-sm text-gray-600 flex items-center">
@@ -338,12 +374,16 @@ const PublicVehicle: React.FC = () => {
 
           {/* Despesas por categoria */}
           <Card>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Despesas por Categoria</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Despesas por Categoria
+            </h2>
             <div className="space-y-3">
               {Object.entries(stats.byType).map(([type, amount]) => (
                 <div key={type} className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getExpenseTypeColor(type)}`}>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getExpenseTypeColor(type)}`}
+                    >
                       {getExpenseTypeLabel(type)}
                     </span>
                   </div>
@@ -367,14 +407,11 @@ const PublicVehicle: React.FC = () => {
                 Gostou do que viu?
               </h3>
               <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-                Crie sua conta no AutoTrack para gerenciar seu veículo, registrar despesas, 
-                compartilhar informações e muito mais!
+                Crie sua conta no AutoTrack para gerenciar seu veículo,
+                registrar despesas, compartilhar informações e muito mais!
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button
-                  size="lg"
-                  onClick={() => setIsRegisterModalOpen(true)}
-                >
+                <Button size="lg" onClick={() => setIsRegisterModalOpen(true)}>
                   <Star className="w-5 h-5 mr-2" />
                   Criar Conta Grátis
                 </Button>
@@ -421,12 +458,13 @@ const PublicVehicle: React.FC = () => {
             />
           </div>
           <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => setIsLoginModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsLoginModalOpen(false)}
+            >
               Cancelar
             </Button>
-            <Button onClick={() => navigate('/login')}>
-              Fazer Login
-            </Button>
+            <Button onClick={() => navigate('/login')}>Fazer Login</Button>
           </div>
         </div>
       </Modal>
@@ -462,17 +500,18 @@ const PublicVehicle: React.FC = () => {
             />
           </div>
           <div className="flex justify-end space-x-3">
-            <Button variant="outline" onClick={() => setIsRegisterModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsRegisterModalOpen(false)}
+            >
               Cancelar
             </Button>
-            <Button onClick={() => navigate('/register')}>
-              Criar Conta
-            </Button>
+            <Button onClick={() => navigate('/register')}>Criar Conta</Button>
           </div>
         </div>
       </Modal>
     </div>
-  );
-};
+  )
+}
 
-export default PublicVehicle;
+export default PublicVehicle

@@ -1,189 +1,211 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Group, User, UserType, Vehicle } from '../types';
-import { getGroupsByUser, createGroup, updateGroup, deleteGroup as deleteGroupSvc, addMember as addMemberSvc, removeMember as removeMemberSvc } from '../services/groupService';
-import { getVehiclesByOwner } from '../services/vehicleService';
-import { getProfileById, getProfileByEmail } from '../services/profileService';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import ImageUpload from '../components/ui/ImageUpload';
-import { 
-  Users, 
-  Plus, 
-  Edit, 
-  Trash2, 
+import React, { useEffect, useMemo, useState } from 'react'
+import { useAuthStore } from '../stores/authStore'
+import { Group, User, UserType, Vehicle } from '../types'
+import {
+  getGroupsByUser,
+  createGroup,
+  updateGroup,
+  deleteGroup as deleteGroupSvc,
+  addMember as addMemberSvc,
+  removeMember as removeMemberSvc,
+} from '../services/groupService'
+import { getVehiclesByOwner } from '../services/vehicleService'
+import { getProfileById, getProfileByEmail } from '../services/profileService'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import ImageUpload from '../components/ui/ImageUpload'
+import {
+  Users,
+  Plus,
+  Edit,
+  Trash2,
   UserPlus,
   UserMinus,
   Share2,
   Car,
-  Crown
-} from 'lucide-react';
+  Crown,
+} from 'lucide-react'
 
 const Groups: React.FC = () => {
-  const { user } = useAuth();
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [profileCache, setProfileCache] = useState<Record<string, User | null>>({});
+  const { user } = useAuthStore()
+  const [groups, setGroups] = useState<Group[]>([])
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
+  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [profileCache, setProfileCache] = useState<Record<string, User | null>>(
+    {}
+  )
 
   useEffect(() => {
     const load = async () => {
-      if (!user?.id) return;
+      if (!user?.id) return
       const [gs, vs] = await Promise.all([
         getGroupsByUser(user.id),
         getVehiclesByOwner(user.id),
-      ]);
-      setGroups(gs);
-      setVehicles(vs);
+      ])
+      setGroups(gs)
+      setVehicles(vs)
       // Carregar perfis dos membros para exibição
-      const memberIds = Array.from(new Set(gs.flatMap(g => g.members.map(m => m.userId))));
-      const cache: Record<string, User | null> = {};
-      await Promise.all(memberIds.map(async (uid) => {
-        const u = await getProfileById(uid);
-        cache[uid] = u;
-      }));
-      setProfileCache(cache);
-    };
-    load();
-  }, [user?.id]);
+      const memberIds = Array.from(
+        new Set(gs.flatMap((g) => g.members.map((m) => m.userId)))
+      )
+      const cache: Record<string, User | null> = {}
+      await Promise.all(
+        memberIds.map(async (uid) => {
+          const u = await getProfileById(uid)
+          cache[uid] = u
+        })
+      )
+      setProfileCache(cache)
+    }
+    load()
+  }, [user?.id])
 
   // Filtrar grupos
   const filteredGroups = useMemo(() => {
-    return groups.filter(group =>
-      group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      group.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [groups, searchTerm]);
+    return groups.filter(
+      (group) =>
+        group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        group.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [groups, searchTerm])
 
   // Verificar limites do usuário
   const getUserLimits = () => {
-    if (!user) return { maxGroups: 0, maxMembersPerGroup: 0 };
-    
+    if (!user) return { maxGroups: 0, maxMembersPerGroup: 0 }
+
     switch (user.userType) {
       case UserType.BASIC:
-        return { maxGroups: 1, maxMembersPerGroup: 2 };
+        return { maxGroups: 1, maxMembersPerGroup: 2 }
       case UserType.ADVANCED:
-        return { maxGroups: 3, maxMembersPerGroup: 5 };
+        return { maxGroups: 3, maxMembersPerGroup: 5 }
       case UserType.PRO:
-        return { maxGroups: Infinity, maxMembersPerGroup: Infinity };
+        return { maxGroups: Infinity, maxMembersPerGroup: Infinity }
       default:
-        return { maxGroups: 0, maxMembersPerGroup: 0 };
+        return { maxGroups: 0, maxMembersPerGroup: 0 }
     }
-  };
+  }
 
-  const limits = getUserLimits();
+  const limits = getUserLimits()
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
-  };
+      year: 'numeric',
+    }).format(new Date(date))
+  }
 
   const handleAddGroup = async (groupData: Partial<Group>) => {
     if (groups.length >= limits.maxGroups) {
-      alert(`Você atingiu o limite de ${limits.maxGroups} grupos para seu plano.`);
-      return;
+      alert(
+        `Você atingiu o limite de ${limits.maxGroups} grupos para seu plano.`
+      )
+      return
     }
-    if (!user?.id) return;
+    if (!user?.id) return
     const { group } = await createGroup(user.id, {
       name: groupData.name || '',
       description: groupData.description,
       vehicleIds: groupData.vehicleIds || [],
-    });
+    })
     if (group) {
-      setGroups([group, ...groups]);
-      setIsAddModalOpen(false);
+      setGroups([group, ...groups])
+      setIsAddModalOpen(false)
     }
-  };
+  }
 
   const handleEditGroup = async (groupData: Partial<Group>) => {
-    if (!editingGroup) return;
+    if (!editingGroup) return
     const { group } = await updateGroup(editingGroup.id, {
       name: groupData.name,
       description: groupData.description,
       vehicleIds: groupData.vehicleIds,
-    });
+    })
     if (group) {
-      setGroups(groups.map(g => (g.id === group.id ? group : g)));
-      setIsEditModalOpen(false);
-      setEditingGroup(null);
+      setGroups(groups.map((g) => (g.id === group.id ? group : g)))
+      setIsEditModalOpen(false)
+      setEditingGroup(null)
     }
-  };
+  }
 
   const handleDeleteGroup = async (groupId: string) => {
     if (window.confirm('Tem certeza que deseja excluir este grupo?')) {
-      const { error } = await deleteGroupSvc(groupId);
+      const { error } = await deleteGroupSvc(groupId)
       if (!error) {
-        setGroups(groups.filter(g => g.id !== groupId));
+        setGroups(groups.filter((g) => g.id !== groupId))
       }
     }
-  };
+  }
 
   const handleAddMember = async (groupId: string, userEmail: string) => {
-    const foundUser = await getProfileByEmail(userEmail);
+    const foundUser = await getProfileByEmail(userEmail)
     if (!foundUser) {
-      alert('Usuário não encontrado com este email.');
-      return;
+      alert('Usuário não encontrado com este email.')
+      return
     }
 
-    const group = groups.find(g => g.id === groupId);
-    if (!group) return;
+    const group = groups.find((g) => g.id === groupId)
+    if (!group) return
 
     if (group.members.length >= limits.maxMembersPerGroup) {
-      alert(`Você atingiu o limite de ${limits.maxMembersPerGroup} membros para seu plano.`);
-      return;
+      alert(
+        `Você atingiu o limite de ${limits.maxMembersPerGroup} membros para seu plano.`
+      )
+      return
     }
 
-    if (group.members.some(m => m.userId === foundUser.id)) {
-      alert('Este usuário já é membro do grupo.');
-      return;
+    if (group.members.some((m) => m.userId === foundUser.id)) {
+      alert('Este usuário já é membro do grupo.')
+      return
     }
-    const { member } = await addMemberSvc(groupId, foundUser.id, 'member');
+    const { member } = await addMemberSvc(groupId, foundUser.id, 'member')
     if (member) {
-      setGroups(groups.map(g => (
-        g.id === groupId ? { ...g, members: [...g.members, member], updatedAt: new Date() } : g
-      )));
-      setProfileCache(prev => ({ ...prev, [foundUser.id]: foundUser }));
-      setIsMemberModalOpen(false);
+      setGroups(
+        groups.map((g) =>
+          g.id === groupId
+            ? { ...g, members: [...g.members, member], updatedAt: new Date() }
+            : g
+        )
+      )
+      setProfileCache((prev) => ({ ...prev, [foundUser.id]: foundUser }))
+      setIsMemberModalOpen(false)
     }
-  };
+  }
 
   const handleRemoveMember = async (groupId: string, memberId: string) => {
     if (window.confirm('Tem certeza que deseja remover este membro?')) {
-      const { error } = await removeMemberSvc(memberId);
+      const { error } = await removeMemberSvc(memberId)
       if (!error) {
-        const updatedGroups = groups.map(g => 
-          g.id === groupId 
-            ? { 
-                ...g, 
-                members: g.members.filter(m => m.id !== memberId),
-                updatedAt: new Date()
+        const updatedGroups = groups.map((g) =>
+          g.id === groupId
+            ? {
+                ...g,
+                members: g.members.filter((m) => m.id !== memberId),
+                updatedAt: new Date(),
               }
             : g
-        );
-        setGroups(updatedGroups);
+        )
+        setGroups(updatedGroups)
       }
     }
-  };
+  }
 
   const openEditModal = (group: Group) => {
-    setEditingGroup(group);
-    setIsEditModalOpen(true);
-  };
+    setEditingGroup(group)
+    setIsEditModalOpen(true)
+  }
 
   const openMemberModal = (group: Group) => {
-    setSelectedGroup(group);
-    setIsMemberModalOpen(true);
-  };
+    setSelectedGroup(group)
+    setIsMemberModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
@@ -195,10 +217,11 @@ const Groups: React.FC = () => {
             Crie grupos para compartilhar informações dos seus veículos
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            Limite: {groups.length}/{limits.maxGroups === Infinity ? '∞' : limits.maxGroups} grupos
+            Limite: {groups.length}/
+            {limits.maxGroups === Infinity ? '∞' : limits.maxGroups} grupos
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => setIsAddModalOpen(true)}
           disabled={groups.length >= limits.maxGroups}
         >
@@ -230,10 +253,9 @@ const Groups: React.FC = () => {
               {searchTerm ? 'Nenhum grupo encontrado' : 'Nenhum grupo criado'}
             </h3>
             <p className="text-gray-500 mb-6">
-              {searchTerm 
+              {searchTerm
                 ? 'Tente ajustar os termos de busca'
-                : 'Comece criando seu primeiro grupo para compartilhar informações'
-              }
+                : 'Comece criando seu primeiro grupo para compartilhar informações'}
             </p>
             {!searchTerm && (
               <Button onClick={() => setIsAddModalOpen(true)}>
@@ -246,9 +268,9 @@ const Groups: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredGroups.map((group) => {
-            const isOwner = group.ownerId === user?.id;
-            const memberCount = group.members.length;
-            const vehicleCount = group.vehicleIds.length;
+            const isOwner = group.ownerId === user?.id
+            const memberCount = group.members.length
+            const vehicleCount = group.vehicleIds.length
 
             return (
               <Card key={group.id} className="overflow-hidden">
@@ -302,7 +324,10 @@ const Groups: React.FC = () => {
                       </div>
                       <p className="text-sm text-gray-600">Membros</p>
                       <p className="text-lg font-semibold text-gray-900">
-                        {memberCount}/{limits.maxMembersPerGroup === Infinity ? '∞' : limits.maxMembersPerGroup}
+                        {memberCount}/
+                        {limits.maxMembersPerGroup === Infinity
+                          ? '∞'
+                          : limits.maxMembersPerGroup}
                       </p>
                     </div>
                     <div className="text-center">
@@ -310,18 +335,25 @@ const Groups: React.FC = () => {
                         <Car className="w-4 h-4 text-green-600" />
                       </div>
                       <p className="text-sm text-gray-600">Veículos</p>
-                      <p className="text-lg font-semibold text-gray-900">{vehicleCount}</p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        {vehicleCount}
+                      </p>
                     </div>
                   </div>
 
                   {/* Lista de membros */}
                   <div className="space-y-2 mb-4">
-                    <h4 className="text-sm font-medium text-gray-700">Membros</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Membros
+                    </h4>
                     <div className="space-y-1">
                       {group.members.slice(0, 3).map((member) => {
-                        const memberUser = profileCache[member.userId];
+                        const memberUser = profileCache[member.userId]
                         return (
-                          <div key={member.id} className="flex items-center space-x-2">
+                          <div
+                            key={member.id}
+                            className="flex items-center space-x-2"
+                          >
                             <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
                               <span className="text-xs font-medium text-gray-600">
                                 {memberUser?.name?.charAt(0) || '?'}
@@ -335,14 +367,16 @@ const Groups: React.FC = () => {
                             )}
                             {isOwner && member.role !== 'owner' && (
                               <button
-                                onClick={() => handleRemoveMember(group.id, member.id)}
+                                onClick={() =>
+                                  handleRemoveMember(group.id, member.id)
+                                }
                                 className="text-red-500 hover:text-red-700"
                               >
                                 <UserMinus className="w-3 h-3" />
                               </button>
                             )}
                           </div>
-                        );
+                        )
                       })}
                       {group.members.length > 3 && (
                         <p className="text-xs text-gray-500">
@@ -365,11 +399,7 @@ const Groups: React.FC = () => {
                         Adicionar Membro
                       </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                    >
+                    <Button variant="outline" size="sm" className="flex-1">
                       <Share2 className="w-4 h-4 mr-2" />
                       Compartilhar
                     </Button>
@@ -380,7 +410,7 @@ const Groups: React.FC = () => {
                   </p>
                 </div>
               </Card>
-            );
+            )
           })}
         </div>
       )}
@@ -389,11 +419,11 @@ const Groups: React.FC = () => {
       <Modal
         isOpen={isAddModalOpen || isEditModalOpen}
         onClose={() => {
-          setIsAddModalOpen(false);
-          setIsEditModalOpen(false);
-          setEditingGroup(null);
+          setIsAddModalOpen(false)
+          setIsEditModalOpen(false)
+          setEditingGroup(null)
         }}
-        title={isAddModalOpen ? "Criar Grupo" : "Editar Grupo"}
+        title={isAddModalOpen ? 'Criar Grupo' : 'Editar Grupo'}
         size="md"
       >
         <GroupForm
@@ -401,9 +431,9 @@ const Groups: React.FC = () => {
           vehicles={vehicles}
           onSubmit={isAddModalOpen ? handleAddGroup : handleEditGroup}
           onCancel={() => {
-            setIsAddModalOpen(false);
-            setIsEditModalOpen(false);
-            setEditingGroup(null);
+            setIsAddModalOpen(false)
+            setIsEditModalOpen(false)
+            setEditingGroup(null)
           }}
         />
       </Modal>
@@ -412,8 +442,8 @@ const Groups: React.FC = () => {
       <Modal
         isOpen={isMemberModalOpen}
         onClose={() => {
-          setIsMemberModalOpen(false);
-          setSelectedGroup(null);
+          setIsMemberModalOpen(false)
+          setSelectedGroup(null)
         }}
         title="Adicionar Membro"
         size="sm"
@@ -422,60 +452,67 @@ const Groups: React.FC = () => {
           group={selectedGroup}
           onSubmit={(userEmail) => {
             if (selectedGroup) {
-              handleAddMember(selectedGroup.id, userEmail);
+              handleAddMember(selectedGroup.id, userEmail)
             }
           }}
           onCancel={() => {
-            setIsMemberModalOpen(false);
-            setSelectedGroup(null);
+            setIsMemberModalOpen(false)
+            setSelectedGroup(null)
           }}
         />
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente do formulário de grupo
 interface GroupFormProps {
-  group?: Group | null;
-  vehicles: any[];
-  onSubmit: (data: Partial<Group> & { groupImage?: File | null }) => void;
-  onCancel: () => void;
+  group?: Group | null
+  vehicles: any[]
+  onSubmit: (data: Partial<Group> & { groupImage?: File | null }) => void
+  onCancel: () => void
 }
 
-const GroupForm: React.FC<GroupFormProps> = ({ group, vehicles, onSubmit, onCancel }) => {
+const GroupForm: React.FC<GroupFormProps> = ({
+  group,
+  vehicles,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     name: group?.name || '',
     description: group?.description || '',
-    vehicleIds: group?.vehicleIds || []
-  });
-  const [groupImage, setGroupImage] = useState<File | null>(null);
+    vehicleIds: group?.vehicleIds || [],
+  })
+  const [groupImage, setGroupImage] = useState<File | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({ ...formData, groupImage });
-  };
+    e.preventDefault()
+    onSubmit({ ...formData, groupImage })
+  }
 
   const handleImageChange = (file: File | null) => {
-    setGroupImage(file);
-  };
+    setGroupImage(file)
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const handleVehicleToggle = (vehicleId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       vehicleIds: prev.vehicleIds.includes(vehicleId)
-        ? prev.vehicleIds.filter(id => id !== vehicleId)
-        : [...prev.vehicleIds, vehicleId]
-    }));
-  };
+        ? prev.vehicleIds.filter((id) => id !== vehicleId)
+        : [...prev.vehicleIds, vehicleId],
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -515,7 +552,7 @@ const GroupForm: React.FC<GroupFormProps> = ({ group, vehicles, onSubmit, onCanc
           Veículos a compartilhar
         </label>
         <div className="space-y-2 max-h-32 overflow-y-auto">
-          {vehicles.map(vehicle => (
+          {vehicles.map((vehicle) => (
             <label key={vehicle.id} className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -540,25 +577,29 @@ const GroupForm: React.FC<GroupFormProps> = ({ group, vehicles, onSubmit, onCanc
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Componente do formulário de adicionar membro
 interface AddMemberFormProps {
-  group: Group | null;
-  onSubmit: (userEmail: string) => void;
-  onCancel: () => void;
+  group: Group | null
+  onSubmit: (userEmail: string) => void
+  onCancel: () => void
 }
 
-const AddMemberForm: React.FC<AddMemberFormProps> = ({ group, onSubmit, onCancel }) => {
-  const [email, setEmail] = useState('');
+const AddMemberForm: React.FC<AddMemberFormProps> = ({
+  group,
+  onSubmit,
+  onCancel,
+}) => {
+  const [email, setEmail] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (email.trim()) {
-      onSubmit(email.trim());
+      onSubmit(email.trim())
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -582,12 +623,10 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({ group, onSubmit, onCancel
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
-        <Button type="submit">
-          Adicionar Membro
-        </Button>
+        <Button type="submit">Adicionar Membro</Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default Groups;
+export default Groups

@@ -1,13 +1,13 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Company } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import { getCompanies, searchCompanies } from '../services/companyService';
-import { 
-  MapPin, 
-  Search, 
+import React, { useState, useMemo, useEffect, useCallback } from 'react'
+import { Company } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import { getCompanies, searchCompanies } from '../services/companyService'
+import {
+  MapPin,
+  Search,
   Phone,
   Mail,
   Star,
@@ -18,107 +18,129 @@ import {
   Wrench,
   Car,
   Map,
-  List
-} from 'lucide-react';
+  List,
+} from 'lucide-react'
 
 const Workshops: React.FC = () => {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState<'all' | 'workshop' | 'dealership'>('all');
-  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'name'>('distance');
-  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+  const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedType, setSelectedType] = useState<
+    'all' | 'workshop' | 'dealership'
+  >('all')
+  const [sortBy, setSortBy] = useState<'distance' | 'rating' | 'name'>(
+    'distance'
+  )
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number
+    longitude: number
+  } | null>(null)
 
   // Carregar empresas do Supabase (busca ou lista)
   useEffect(() => {
-    let isMounted = true;
+    let isMounted = true
     const load = async () => {
-      const term = searchTerm.trim();
-      const list = term ? await searchCompanies(term) : await getCompanies();
-      if (isMounted) setCompanies(list);
-    };
-    load();
-    return () => { isMounted = false; };
-  }, [searchTerm]);
+      const term = searchTerm.trim()
+      const list = term ? await searchCompanies(term) : await getCompanies()
+      if (isMounted) setCompanies(list)
+    }
+    load()
+    return () => {
+      isMounted = false
+    }
+  }, [searchTerm])
 
-  const toRad = (value: number) => (value * Math.PI) / 180;
-  const computeDistanceKm = useCallback((
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number
-  ) => {
-    const R = 6371; // km
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  }, []);
+  const toRad = (value: number) => (value * Math.PI) / 180
+  const computeDistanceKm = useCallback(
+    (lat1: number, lon1: number, lat2: number, lon2: number) => {
+      const R = 6371 // km
+      const dLat = toRad(lat2 - lat1)
+      const dLon = toRad(lon2 - lon1)
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRad(lat1)) *
+          Math.cos(toRad(lat2)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+      return R * c
+    },
+    []
+  )
 
   // Filtrar e ordenar empresas
   const filteredCompanies = useMemo(() => {
-    let filtered = companies.filter(company => {
-      const matchesSearch = company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           company.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           company.address.city.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesType = selectedType === 'all' || company.type === selectedType;
-      return matchesSearch && matchesType;
-    });
+    let filtered = companies.filter((company) => {
+      const matchesSearch =
+        company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        company.address.city.toLowerCase().includes(searchTerm.toLowerCase())
+      const matchesType =
+        selectedType === 'all' || company.type === selectedType
+      return matchesSearch && matchesType
+    })
 
     // Ordenar
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'rating':
-          return b.rating - a.rating;
+          return b.rating - a.rating
         case 'name':
-          return a.name.localeCompare(b.name);
+          return a.name.localeCompare(b.name)
         case 'distance':
         default:
           if (!userLocation) {
             // Sem localização, ordenar por avaliação
-            return b.rating - a.rating;
+            return b.rating - a.rating
           }
           const da = computeDistanceKm(
             userLocation.latitude,
             userLocation.longitude,
             a.address.latitude,
             a.address.longitude
-          );
+          )
           const db = computeDistanceKm(
             userLocation.latitude,
             userLocation.longitude,
             b.address.latitude,
             b.address.longitude
-          );
-          return da - db;
+          )
+          return da - db
       }
-    });
+    })
 
-    return filtered;
-  }, [companies, searchTerm, selectedType, sortBy, userLocation, computeDistanceKm]);
+    return filtered
+  }, [
+    companies,
+    searchTerm,
+    selectedType,
+    sortBy,
+    userLocation,
+    computeDistanceKm,
+  ])
 
   // formatPhone definido e usado em CompanyDetails
 
   const getCompanyTypeLabel = (type: string) => {
-    return type === 'workshop' ? 'Oficina' : 'Concessionária';
-  };
+    return type === 'workshop' ? 'Oficina' : 'Concessionária'
+  }
 
   const getCompanyTypeColor = (type: string) => {
-    return type === 'workshop' 
-      ? 'bg-orange-100 text-orange-800' 
-      : 'bg-blue-100 text-blue-800';
-  };
+    return type === 'workshop'
+      ? 'bg-orange-100 text-orange-800'
+      : 'bg-blue-100 text-blue-800'
+  }
 
   const getCompanyTypeIcon = (type: string) => {
-    return type === 'workshop' ? <Wrench className="w-4 h-4" /> : <Car className="w-4 h-4" />;
-  };
+    return type === 'workshop' ? (
+      <Wrench className="w-4 h-4" />
+    ) : (
+      <Car className="w-4 h-4" />
+    )
+  }
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
@@ -126,36 +148,38 @@ const Workshops: React.FC = () => {
         (position) => {
           setUserLocation({
             latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          });
+            longitude: position.coords.longitude,
+          })
         },
         () => {
           // Fallback para São Paulo
           setUserLocation({
             latitude: -23.5505,
-            longitude: -46.6333
-          });
+            longitude: -46.6333,
+          })
         }
-      );
+      )
     }
-  };
+  }
 
   const openDetailsModal = (company: Company) => {
-    setSelectedCompany(company);
-    setIsDetailsModalOpen(true);
-  };
+    setSelectedCompany(company)
+    setIsDetailsModalOpen(true)
+  }
 
   const openAppointmentModal = (company: Company) => {
-    setSelectedCompany(company);
-    setIsAppointmentModalOpen(true);
-  };
+    setSelectedCompany(company)
+    setIsAppointmentModalOpen(true)
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Oficinas e Concessionárias</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Oficinas e Concessionárias
+          </h1>
           <p className="text-gray-600 mt-1">
             Encontre oficinas e concessionárias próximas a você
           </p>
@@ -165,7 +189,11 @@ const Workshops: React.FC = () => {
             variant="outline"
             onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
           >
-            {viewMode === 'list' ? <Map className="w-4 h-4 mr-2" /> : <List className="w-4 h-4 mr-2" />}
+            {viewMode === 'list' ? (
+              <Map className="w-4 h-4 mr-2" />
+            ) : (
+              <List className="w-4 h-4 mr-2" />
+            )}
             {viewMode === 'list' ? 'Mapa' : 'Lista'}
           </Button>
           <Button variant="outline" onClick={handleGetLocation}>
@@ -190,7 +218,11 @@ const Workshops: React.FC = () => {
 
           <select
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value as 'all' | 'workshop' | 'dealership')}
+            onChange={(e) =>
+              setSelectedType(
+                e.target.value as 'all' | 'workshop' | 'dealership'
+              )
+            }
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="all">Todos os tipos</option>
@@ -200,7 +232,9 @@ const Workshops: React.FC = () => {
 
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as 'distance' | 'rating' | 'name')}
+            onChange={(e) =>
+              setSortBy(e.target.value as 'distance' | 'rating' | 'name')
+            }
             className="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
           >
             <option value="distance">Mais próximas</option>
@@ -232,7 +266,10 @@ const Workshops: React.FC = () => {
             </Card>
           ) : (
             filteredCompanies.map((company) => (
-              <Card key={company.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={company.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <div className="flex items-start space-x-4">
                   {/* Logo da empresa */}
                   <div className="flex-shrink-0">
@@ -257,11 +294,13 @@ const Workshops: React.FC = () => {
                           <h3 className="text-lg font-semibold text-gray-900 truncate">
                             {company.name}
                           </h3>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCompanyTypeColor(company.type)}`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getCompanyTypeColor(company.type)}`}
+                          >
                             {getCompanyTypeLabel(company.type)}
                           </span>
                         </div>
-                        
+
                         <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                           {company.description}
                         </p>
@@ -283,14 +322,16 @@ const Workshops: React.FC = () => {
 
                         {/* Serviços */}
                         <div className="flex flex-wrap gap-1 mb-3">
-                          {company.services.slice(0, 3).map((service, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
-                            >
-                              {service}
-                            </span>
-                          ))}
+                          {company.services
+                            .slice(0, 3)
+                            .map((service, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700"
+                              >
+                                {service}
+                              </span>
+                            ))}
                           {company.services.length > 3 && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-700">
                               +{company.services.length - 3} mais
@@ -326,7 +367,11 @@ const Workshops: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => window.open(`https://wa.me/55${company.phone.replace(/\D/g, '')}`)}
+                        onClick={() =>
+                          window.open(
+                            `https://wa.me/55${company.phone.replace(/\D/g, '')}`
+                          )
+                        }
                       >
                         <MessageCircle className="w-4 h-4" />
                       </Button>
@@ -362,8 +407,8 @@ const Workshops: React.FC = () => {
       <Modal
         isOpen={isDetailsModalOpen}
         onClose={() => {
-          setIsDetailsModalOpen(false);
-          setSelectedCompany(null);
+          setIsDetailsModalOpen(false)
+          setSelectedCompany(null)
         }}
         title={selectedCompany?.name}
         size="lg"
@@ -372,12 +417,12 @@ const Workshops: React.FC = () => {
           <CompanyDetails
             company={selectedCompany}
             onAppointment={() => {
-              setIsDetailsModalOpen(false);
-              openAppointmentModal(selectedCompany);
+              setIsDetailsModalOpen(false)
+              openAppointmentModal(selectedCompany)
             }}
             onClose={() => {
-              setIsDetailsModalOpen(false);
-              setSelectedCompany(null);
+              setIsDetailsModalOpen(false)
+              setSelectedCompany(null)
             }}
           />
         )}
@@ -387,8 +432,8 @@ const Workshops: React.FC = () => {
       <Modal
         isOpen={isAppointmentModalOpen}
         onClose={() => {
-          setIsAppointmentModalOpen(false);
-          setSelectedCompany(null);
+          setIsAppointmentModalOpen(false)
+          setSelectedCompany(null)
         }}
         title={`Agendar - ${selectedCompany?.name}`}
         size="md"
@@ -397,41 +442,45 @@ const Workshops: React.FC = () => {
           <AppointmentForm
             company={selectedCompany}
             onSubmit={() => {
-              setIsAppointmentModalOpen(false);
-              setSelectedCompany(null);
+              setIsAppointmentModalOpen(false)
+              setSelectedCompany(null)
             }}
             onCancel={() => {
-              setIsAppointmentModalOpen(false);
-              setSelectedCompany(null);
+              setIsAppointmentModalOpen(false)
+              setSelectedCompany(null)
             }}
           />
         )}
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente de detalhes da empresa
 interface CompanyDetailsProps {
-  company: Company;
-  onAppointment: () => void;
-  onClose: () => void;
+  company: Company
+  onAppointment: () => void
+  onClose: () => void
 }
 
-const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company, onAppointment, onClose }) => {
+const CompanyDetails: React.FC<CompanyDetailsProps> = ({
+  company,
+  onAppointment,
+  onClose,
+}) => {
   const formatPhone = (phone: string) => {
-    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  };
+    return phone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3')
+  }
 
   const getCompanyTypeLabel = (type: string) => {
-    return type === 'workshop' ? 'Oficina' : 'Concessionária';
-  };
+    return type === 'workshop' ? 'Oficina' : 'Concessionária'
+  }
 
   const getCompanyTypeColor = (type: string) => {
-    return type === 'workshop' 
-      ? 'bg-orange-100 text-orange-800' 
-      : 'bg-blue-100 text-blue-800';
-  };
+    return type === 'workshop'
+      ? 'bg-orange-100 text-orange-800'
+      : 'bg-blue-100 text-blue-800'
+  }
 
   return (
     <div className="space-y-6">
@@ -451,7 +500,9 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company, onAppointment,
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-2">
             <h2 className="text-2xl font-bold text-gray-900">{company.name}</h2>
-            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getCompanyTypeColor(company.type)}`}>
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getCompanyTypeColor(company.type)}`}
+            >
               {getCompanyTypeLabel(company.type)}
             </span>
           </div>
@@ -504,11 +555,10 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company, onAppointment,
                   {company.address.street}, {company.address.number}
                 </p>
                 <p className="text-gray-600">
-                  {company.address.neighborhood}, {company.address.city} - {company.address.state}
+                  {company.address.neighborhood}, {company.address.city} -{' '}
+                  {company.address.state}
                 </p>
-                <p className="text-gray-600">
-                  CEP: {company.address.zipCode}
-                </p>
+                <p className="text-gray-600">CEP: {company.address.zipCode}</p>
               </div>
             </div>
           </div>
@@ -540,40 +590,48 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company, onAppointment,
         </Button>
       </div>
     </div>
-  );
-};
+  )
+}
 
 // Componente de formulário de agendamento
 interface AppointmentFormProps {
-  company: Company;
-  onSubmit: () => void;
-  onCancel: () => void;
+  company: Company
+  onSubmit: () => void
+  onCancel: () => void
 }
 
-const AppointmentForm: React.FC<AppointmentFormProps> = ({ company, onSubmit, onCancel }) => {
+const AppointmentForm: React.FC<AppointmentFormProps> = ({
+  company,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     date: '',
     time: '',
     service: '',
     description: '',
     vehicle: '',
-    phone: ''
-  });
+    phone: '',
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     // Aqui seria enviado para o backend
-    alert('Agendamento solicitado com sucesso!');
-    onSubmit();
-  };
+    alert('Agendamento solicitado com sucesso!')
+    onSubmit()
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -657,7 +715,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({ company, onSubmit, on
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default Workshops;
+export default Workshops

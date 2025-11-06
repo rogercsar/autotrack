@@ -1,26 +1,26 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  Car, 
-  DollarSign, 
-  Users, 
-  MapPin, 
-  AlertTriangle, 
+import React from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import {
+  Home,
+  Car,
+  DollarSign,
+  Users,
+  MapPin,
+  AlertTriangle,
   Settings,
   BarChart3,
   FileText,
   Share2,
-  ArrowRight
-} from 'lucide-react';
+  ArrowRight,
+} from 'lucide-react'
 
 interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const location = useLocation();
+  const location = useLocation()
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -34,26 +34,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Exportar', href: '/export', icon: FileText },
     { name: 'Compartilhar', href: '/share', icon: Share2 },
     { name: 'Configurações', href: '/settings', icon: Settings },
-  ];
+  ]
 
   const isActive = (href: string) => {
-    return location.pathname === href || location.pathname.startsWith(href + '/');
-  };
+    return (
+      location.pathname === href || location.pathname.startsWith(href + '/')
+    )
+  }
 
   return (
     <>
       {/* Overlay mobile */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:z-50 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:z-50 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center px-3 sm:px-4 py-4 sm:py-6 border-b border-gray-200 lg:py-2 lg:px-4">
@@ -64,8 +68,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
               <div className="ml-3">
-                <h1 className="text-lg sm:text-xl lg:text-lg font-bold text-gray-900">AutoTrack</h1>
-                <p className="text-xs text-gray-500 hidden sm:block lg:hidden">Gestão de Veículos</p>
+                <h1 className="text-lg sm:text-xl lg:text-lg font-bold text-gray-900">
+                  AutoTrack
+                </h1>
+                <p className="text-xs text-gray-500 hidden sm:block lg:hidden">
+                  Gestão de Veículos
+                </p>
               </div>
             </div>
           </div>
@@ -73,7 +81,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Navigation */}
           <nav className="flex-1 px-3 sm:px-4 py-4 sm:py-6 space-y-1 overflow-y-auto">
             {navigation.map((item) => {
-              const Icon = item.icon;
+              const Icon = item.icon
               return (
                 <Link
                   key={item.name}
@@ -94,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   />
                   <span className="truncate">{item.name}</span>
                 </Link>
-              );
+              )
             })}
           </nav>
 
@@ -108,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default Sidebar;
+export default Sidebar

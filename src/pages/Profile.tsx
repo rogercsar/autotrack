@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { UserType, User } from '../types';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import ImageUpload from '../components/ui/ImageUpload';
-import { 
-  User as UserIcon, 
-  Edit, 
-  Save, 
+import React, { useState } from 'react'
+import { useAuthStore } from '../stores/authStore'
+import { UserType, User } from '../types'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
+import Modal from '../components/ui/Modal'
+import Input from '../components/ui/Input'
+import ImageUpload from '../components/ui/ImageUpload'
+import {
+  User as UserIcon,
+  Edit,
+  Save,
   Mail,
   Phone,
   Shield,
@@ -19,77 +19,84 @@ import {
   Bell,
   Lock,
   Eye,
-  EyeOff
-} from 'lucide-react';
+  EyeOff,
+} from 'lucide-react'
 
 const Profile: React.FC = () => {
-  const { user } = useAuth();
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
+  const { user } = useAuthStore()
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false)
+  const [isNotificationsModalOpen, setIsNotificationsModalOpen] =
+    useState(false)
 
-  if (!user) return null;
+  if (!user) return null
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
-    }).format(new Date(date));
-  };
+      year: 'numeric',
+    }).format(new Date(date))
+  }
 
   const getUserTypeLabel = (userType: UserType) => {
     const types: Record<UserType, string> = {
       basic: 'Básico',
       advanced: 'Avançado',
       pro: 'Pro',
-      admin: 'Admin'
-    };
-    return types[userType] || userType;
-  };
+      admin: 'Admin',
+    }
+    return types[userType] || userType
+  }
 
   const getUserTypeColor = (userType: UserType) => {
     const colors: Record<UserType, string> = {
       basic: 'bg-gray-100 text-gray-800',
       advanced: 'bg-blue-100 text-blue-800',
       pro: 'bg-purple-100 text-purple-800',
-      admin: 'bg-red-100 text-red-800'
-    };
-    return colors[userType] || 'bg-gray-100 text-gray-800';
-  };
+      admin: 'bg-red-100 text-red-800',
+    }
+    return colors[userType] || 'bg-gray-100 text-gray-800'
+  }
 
   const getUserTypeIcon = (userType: UserType) => {
     switch (userType) {
       case UserType.BASIC:
-        return <UserIcon className="w-4 h-4" />;
+        return <UserIcon className="w-4 h-4" />
       case UserType.ADVANCED:
-        return <Star className="w-4 h-4" />;
+        return <Star className="w-4 h-4" />
       case UserType.PRO:
-        return <Crown className="w-4 h-4" />;
+        return <Crown className="w-4 h-4" />
       case UserType.ADMIN:
-        return <Shield className="w-4 h-4" />;
+        return <Shield className="w-4 h-4" />
       default:
-        return <UserIcon className="w-4 h-4" />;
+        return <UserIcon className="w-4 h-4" />
     }
-  };
+  }
 
-  const handleUpdateProfile = (profileData: Partial<User> & { avatarFile?: File | null }) => {
+  const handleUpdateProfile = (
+    profileData: Partial<User> & { avatarFile?: File | null }
+  ) => {
     // Aqui seria implementada a lógica de atualização do perfil
-    console.log('Atualizando perfil:', profileData);
-    setIsEditModalOpen(false);
-  };
+    console.log('Atualizando perfil:', profileData)
+    setIsEditModalOpen(false)
+  }
 
-  const handleChangePassword = (passwordData: { currentPassword: string; newPassword: string; confirmPassword: string }) => {
+  const handleChangePassword = (passwordData: {
+    currentPassword: string
+    newPassword: string
+    confirmPassword: string
+  }) => {
     // Aqui seria implementada a lógica de alteração de senha
-    console.log('Alterando senha:', passwordData);
-    setIsPasswordModalOpen(false);
-  };
+    console.log('Alterando senha:', passwordData)
+    setIsPasswordModalOpen(false)
+  }
 
   const handleUpdateNotifications = (notificationData: any) => {
     // Aqui seria implementada a lógica de atualização das notificações
-    console.log('Atualizando notificações:', notificationData);
-    setIsNotificationsModalOpen(false);
-  };
+    console.log('Atualizando notificações:', notificationData)
+    setIsNotificationsModalOpen(false)
+  }
 
   return (
     <div className="space-y-6">
@@ -126,19 +133,27 @@ const Profile: React.FC = () => {
               )}
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getUserTypeColor(user.userType)}`}>
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {user.name}
+                  </h2>
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getUserTypeColor(user.userType)}`}
+                  >
                     {getUserTypeIcon(user.userType)}
-                    <span className="ml-1">{getUserTypeLabel(user.userType)}</span>
+                    <span className="ml-1">
+                      {getUserTypeLabel(user.userType)}
+                    </span>
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center">
                     <Mail className="w-4 h-4 text-gray-500 mr-3" />
                     <div>
                       <p className="text-gray-600">Email</p>
-                      <p className="font-semibold text-gray-900">{user.email}</p>
+                      <p className="font-semibold text-gray-900">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                   {user.phone && (
@@ -146,7 +161,9 @@ const Profile: React.FC = () => {
                       <Phone className="w-4 h-4 text-gray-500 mr-3" />
                       <div>
                         <p className="text-gray-600">Telefone</p>
-                        <p className="font-semibold text-gray-900">{user.phone}</p>
+                        <p className="font-semibold text-gray-900">
+                          {user.phone}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -155,12 +172,14 @@ const Profile: React.FC = () => {
                       <Phone className="w-4 h-4 text-gray-500 mr-3" />
                       <div>
                         <p className="text-gray-600">Contato de Emergência</p>
-                        <p className="font-semibold text-gray-900">{user.emergencyContact}</p>
+                        <p className="font-semibold text-gray-900">
+                          {user.emergencyContact}
+                        </p>
                       </div>
                     </div>
                   )}
                 </div>
-                
+
                 <div className="mt-4 flex items-center text-sm text-gray-500">
                   <Calendar className="w-4 h-4 mr-2" />
                   Membro desde {formatDate(user.createdAt)}
@@ -173,7 +192,9 @@ const Profile: React.FC = () => {
         {/* Ações rápidas */}
         <div className="space-y-4">
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Ações Rápidas</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Ações Rápidas
+            </h3>
             <div className="space-y-3">
               <Button
                 variant="outline"
@@ -194,7 +215,9 @@ const Profile: React.FC = () => {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => {/* Implementar upgrade de plano */}}
+                onClick={() => {
+                  /* Implementar upgrade de plano */
+                }}
               >
                 <Crown className="w-4 h-4 mr-2" />
                 Upgrade de Plano
@@ -203,23 +226,30 @@ const Profile: React.FC = () => {
           </Card>
 
           <Card>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Plano Atual</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Plano Atual
+            </h3>
             <div className="text-center">
-              <div className={`inline-flex items-center px-4 py-2 rounded-full text-lg font-medium ${getUserTypeColor(user.userType)} mb-3`}>
+              <div
+                className={`inline-flex items-center px-4 py-2 rounded-full text-lg font-medium ${getUserTypeColor(user.userType)} mb-3`}
+              >
                 {getUserTypeIcon(user.userType)}
                 <span className="ml-2">{getUserTypeLabel(user.userType)}</span>
               </div>
               <p className="text-sm text-gray-600 mb-4">
-                {user.userType === UserType.BASIC && 'Plano gratuito com funcionalidades básicas'}
-                {user.userType === UserType.ADVANCED && 'Plano avançado com recursos extras'}
-                {user.userType === UserType.PRO && 'Plano profissional com todos os recursos'}
-                {user.userType === UserType.ADMIN && 'Acesso administrativo completo'}
+                {user.userType === UserType.BASIC &&
+                  'Plano gratuito com funcionalidades básicas'}
+                {user.userType === UserType.ADVANCED &&
+                  'Plano avançado com recursos extras'}
+                {user.userType === UserType.PRO &&
+                  'Plano profissional com todos os recursos'}
+                {user.userType === UserType.ADMIN &&
+                  'Acesso administrativo completo'}
               </p>
-              {user.userType !== UserType.PRO && user.userType !== UserType.ADMIN && (
-                <Button size="sm">
-                  Fazer Upgrade
-                </Button>
-              )}
+              {user.userType !== UserType.PRO &&
+                user.userType !== UserType.ADMIN && (
+                  <Button size="sm">Fazer Upgrade</Button>
+                )}
             </div>
           </Card>
         </div>
@@ -265,45 +295,49 @@ const Profile: React.FC = () => {
         />
       </Modal>
     </div>
-  );
-};
+  )
+}
 
 // Componente de edição do perfil
 interface ProfileEditFormProps {
-  user: User;
-  onSubmit: (data: Partial<User> & { avatarFile?: File | null }) => void;
-  onCancel: () => void;
+  user: User
+  onSubmit: (data: Partial<User> & { avatarFile?: File | null }) => void
+  onCancel: () => void
 }
 
-const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSubmit, onCancel }) => {
+const ProfileEditForm: React.FC<ProfileEditFormProps> = ({
+  user,
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     name: user.name,
     email: user.email,
     phone: user.phone || '',
     emergencyContact: user.emergencyContact || '',
-    avatar: user.avatar || ''
-  });
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+    avatar: user.avatar || '',
+  })
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit({ ...formData, avatarFile });
-  };
+    e.preventDefault()
+    onSubmit({ ...formData, avatarFile })
+  }
 
   const handleAvatarChange = (file: File | null, previewUrl?: string) => {
-    setAvatarFile(file);
+    setAvatarFile(file)
     if (previewUrl) {
-      setFormData(prev => ({ ...prev, avatar: previewUrl }));
+      setFormData((prev) => ({ ...prev, avatar: previewUrl }))
     }
-  };
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -359,46 +393,53 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ user, onSubmit, onCan
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Componente de alteração de senha
 interface PasswordChangeFormProps {
-  onSubmit: (data: { currentPassword: string; newPassword: string; confirmPassword: string }) => void;
-  onCancel: () => void;
+  onSubmit: (data: {
+    currentPassword: string
+    newPassword: string
+    confirmPassword: string
+  }) => void
+  onCancel: () => void
 }
 
-const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({ onSubmit, onCancel }) => {
+const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({
+  onSubmit,
+  onCancel,
+}) => {
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: ''
-  });
+    confirmPassword: '',
+  })
   const [showPasswords, setShowPasswords] = useState({
     current: false,
     new: false,
-    confirm: false
-  });
+    confirm: false,
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
+    e.preventDefault()
+    onSubmit(formData)
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
+    const { name, value } = e.target
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }));
-  };
+      [name]: value,
+    }))
+  }
 
   const togglePasswordVisibility = (field: 'current' | 'new' | 'confirm') => {
-    setShowPasswords(prev => ({
+    setShowPasswords((prev) => ({
       ...prev,
-      [field]: !prev[field]
-    }));
-  };
+      [field]: !prev[field],
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -420,7 +461,11 @@ const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({ onSubmit, onCan
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             onClick={() => togglePasswordVisibility('current')}
           >
-            {showPasswords.current ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPasswords.current ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>
@@ -443,7 +488,11 @@ const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({ onSubmit, onCan
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             onClick={() => togglePasswordVisibility('new')}
           >
-            {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPasswords.new ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>
@@ -466,7 +515,11 @@ const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({ onSubmit, onCan
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
             onClick={() => togglePasswordVisibility('confirm')}
           >
-            {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showPasswords.confirm ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
           </button>
         </div>
       </div>
@@ -481,16 +534,19 @@ const PasswordChangeForm: React.FC<PasswordChangeFormProps> = ({ onSubmit, onCan
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
 // Componente de configurações de notificação
 interface NotificationSettingsFormProps {
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
+  onSubmit: (data: any) => void
+  onCancel: () => void
 }
 
-const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onSubmit, onCancel }) => {
+const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({
+  onSubmit,
+  onCancel,
+}) => {
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: true,
@@ -498,29 +554,33 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onS
     expenseAlerts: true,
     maintenanceReminders: true,
     groupUpdates: true,
-    emergencyAlerts: true
-  });
+    emergencyAlerts: true,
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(settings);
-  };
+    e.preventDefault()
+    onSubmit(settings)
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setSettings(prev => ({
+    const { name, checked } = e.target
+    setSettings((prev) => ({
       ...prev,
-      [name]: checked
-    }));
-  };
+      [name]: checked,
+    }))
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Notificações por Email</h4>
-            <p className="text-sm text-gray-500">Receber notificações por email</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Notificações por Email
+            </h4>
+            <p className="text-sm text-gray-500">
+              Receber notificações por email
+            </p>
           </div>
           <input
             type="checkbox"
@@ -533,8 +593,12 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onS
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Notificações Push</h4>
-            <p className="text-sm text-gray-500">Receber notificações no navegador</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Notificações Push
+            </h4>
+            <p className="text-sm text-gray-500">
+              Receber notificações no navegador
+            </p>
           </div>
           <input
             type="checkbox"
@@ -547,8 +611,12 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onS
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Alertas de Despesas</h4>
-            <p className="text-sm text-gray-500">Notificar sobre despesas altas</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Alertas de Despesas
+            </h4>
+            <p className="text-sm text-gray-500">
+              Notificar sobre despesas altas
+            </p>
           </div>
           <input
             type="checkbox"
@@ -561,8 +629,12 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onS
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Lembretes de Manutenção</h4>
-            <p className="text-sm text-gray-500">Lembrar sobre manutenções programadas</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Lembretes de Manutenção
+            </h4>
+            <p className="text-sm text-gray-500">
+              Lembrar sobre manutenções programadas
+            </p>
           </div>
           <input
             type="checkbox"
@@ -575,8 +647,12 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onS
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Atualizações de Grupo</h4>
-            <p className="text-sm text-gray-500">Notificar sobre mudanças nos grupos</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Atualizações de Grupo
+            </h4>
+            <p className="text-sm text-gray-500">
+              Notificar sobre mudanças nos grupos
+            </p>
           </div>
           <input
             type="checkbox"
@@ -589,8 +665,12 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onS
 
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm font-medium text-gray-900">Alertas de Emergência</h4>
-            <p className="text-sm text-gray-500">Notificar sobre alertas de emergência</p>
+            <h4 className="text-sm font-medium text-gray-900">
+              Alertas de Emergência
+            </h4>
+            <p className="text-sm text-gray-500">
+              Notificar sobre alertas de emergência
+            </p>
           </div>
           <input
             type="checkbox"
@@ -612,7 +692,7 @@ const NotificationSettingsForm: React.FC<NotificationSettingsFormProps> = ({ onS
         </Button>
       </div>
     </form>
-  );
-};
+  )
+}
 
-export default Profile;
+export default Profile
