@@ -11,6 +11,17 @@ export const getProfileById = async (userId: string) => {
   return { data, error }
 }
 
+export const createProfile = async (profileData: {
+  id: string
+  name: string
+  email: string
+  userType: UserType
+}) => {
+  const s = getSupabase()
+  const { data, error } = await s.from('profiles').insert([profileData])
+  return { data, error }
+}
+
 export const getProfileByEmail = async (email: string) => {
   const s = getSupabase()
   const { data, error } = await s

@@ -1,6 +1,7 @@
 import {
   getProfileById as getProfileByIdFromApi,
   getProfileByEmail as getProfileByEmailFromApi,
+  createProfile as createProfileFromApi,
   updateUserType as updateUserTypeFromApi,
 } from '../api/profile'
 import { User, UserType } from '../types'
@@ -33,6 +34,15 @@ export async function getProfileById(id: string): Promise<User | null> {
   const { data, error } = await getProfileByIdFromApi(id)
   if (error || !data) return null
   return toUser(data as ProfileRow)
+}
+
+export async function createProfile(profileData: {
+  id: string
+  name: string
+  email: string
+  userType: UserType
+}) {
+  return await createProfileFromApi(profileData)
 }
 
 export async function updateUserType(id: string, userType: UserType) {

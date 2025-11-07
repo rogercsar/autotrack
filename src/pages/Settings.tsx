@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { UserType } from '../types'
 import Card from '../components/ui/Card'
@@ -160,37 +161,50 @@ const Settings: React.FC = () => {
 
       {/* Informações da conta */}
       <Card>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Informações da Conta
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm text-gray-600">Tipo de Usuário</p>
-            <p className="font-semibold text-gray-900">
-              {user.userType === UserType.BASIC && 'Básico'}
-              {user.userType === UserType.ADVANCED && 'Avançado'}
-              {user.userType === UserType.PRO && 'Pro'}
-              {user.userType === UserType.ADMIN && 'Admin'}
+            <h2 className="text-xl font-semibold text-gray-900">Plano Atual</h2>
+            <p className="text-gray-600 mt-1">
+              Você está no plano{' '}
+              <span className="font-bold text-primary-600">
+                {user.userType === UserType.BASIC && 'Básico'}
+                {user.userType === UserType.ADVANCED && 'Avançado'}
+                {user.userType === UserType.PRO && 'Pro'}
+                {user.userType === UserType.ADMIN && 'Admin'}
+              </span>
+              .
             </p>
           </div>
-          <div>
-            <p className="text-sm text-gray-600">Membro desde</p>
-            <p className="font-semibold text-gray-900">
-              {new Date(user.createdAt).toLocaleDateString('pt-BR')}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Última atualização</p>
-            <p className="font-semibold text-gray-900">
-              {new Date(user.updatedAt).toLocaleDateString('pt-BR')}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Status</p>
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-              <CheckCircle className="w-3 h-3 mr-1" />
-              Ativo
-            </span>
+          {user.userType !== UserType.ADMIN && (
+            <Link to="/plans">
+              <Button className="mt-4 md:mt-0">Upgrade de Plano</Button>
+            </Link>
+          )}
+        </div>
+        <div className="border-t border-gray-200 mt-4 pt-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Detalhes da Conta
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600">Membro desde</p>
+              <p className="font-semibold text-gray-900">
+                {new Date(user.createdAt).toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Última atualização</p>
+              <p className="font-semibold text-gray-900">
+                {new Date(user.updatedAt).toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600">Status</p>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Ativo
+              </span>
+            </div>
           </div>
         </div>
       </Card>

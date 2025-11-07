@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { User, RegisterData, UserType } from '../types'
 import toast from 'react-hot-toast'
 import { signInWithPassword, signUp, signOut, getUser } from '../api/auth'
-import { getProfileById, updateUserType } from '../services/profileService'
+import { getProfileById, createProfile } from '../services/profileService'
 
 interface AuthState {
   user: User | null
@@ -35,20 +35,23 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isLoading: false })
     }
   },
-  register: async (userData) => {
+  register: async (userData: RegisterData & { userType: UserType }) => {
     set({ isLoading: true })
     try {
-      if (userData.password !== userData.confirmPassword) {
-        throw new Error('Senhas não coincidem')
-      }
       const { data, error } = await signUp(userData)
       if (error) throw error
       const authUser = data.user
       if (!authUser) {
-        toast.success('Conta criada! Verifique seu email para confirmar.')
+        toast.error('Ocorreu um erro inesperado durante o cadastro.')
         return
       }
-      await updateUserType(authUser.id, userData.userType as UserType)
+      // Criar perfil público
+      await createProfile({
+        id: authUser.id,
+        name: userData.name,
+        email: userData.email,
+        userType: userData.userType,
+      })
       const profile = await getProfileById(authUser.id)
       if (!profile) throw new Error('Perfil não encontrado após cadastro')
       set({ user: profile })

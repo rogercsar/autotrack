@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
 import { UserType, User } from '../types'
 import Card from '../components/ui/Card'
@@ -212,16 +213,12 @@ const Profile: React.FC = () => {
                 <Bell className="w-4 h-4 mr-2" />
                 Notificações
               </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => {
-                  /* Implementar upgrade de plano */
-                }}
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade de Plano
-              </Button>
+              <Link to="/plans" className="w-full">
+                <Button variant="outline" className="w-full justify-start">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade de Plano
+                </Button>
+              </Link>
             </div>
           </Card>
 
@@ -248,7 +245,9 @@ const Profile: React.FC = () => {
               </p>
               {user.userType !== UserType.PRO &&
                 user.userType !== UserType.ADMIN && (
-                  <Button size="sm">Fazer Upgrade</Button>
+                  <Link to="/plans">
+                    <Button size="sm">Fazer Upgrade</Button>
+                  </Link>
                 )}
             </div>
           </Card>

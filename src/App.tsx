@@ -29,6 +29,10 @@ import Profile from './pages/Profile'
 import Settings from './pages/Settings'
 import Reports from './pages/Reports'
 import PublicVehicle from './pages/PublicVehicle'
+import Plans from './pages/Plans'
+import PaymentSuccess from './pages/PaymentSuccess'
+import PaymentFailure from './pages/PaymentFailure'
+import PaymentPending from './pages/PaymentPending'
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
@@ -141,6 +145,10 @@ const App: React.FC = () => {
             <Route path="settings" element={<Settings />} />
             <Route path="admin" element={<AdminDashboard />} />
             <Route path="company" element={<CompanyDashboard />} />
+            <Route path="plans" element={<Plans />} />
+            <Route path="payment/success" element={<PaymentSuccess />} />
+            <Route path="payment/failure" element={<PaymentFailure />} />
+            <Route path="payment/pending" element={<PaymentPending />} />
           </Route>
 
           {/* Rota pública para veículo */}

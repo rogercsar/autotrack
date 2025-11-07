@@ -160,14 +160,6 @@ export interface VehicleTransfer {
   completedAt?: Date
 }
 
-// Interface para dados de contexto de autenticação
-export interface AuthContextType {
-  user: User | null
-  login: (email: string, password: string) => Promise<void>
-  register: (userData: RegisterData) => Promise<void>
-  logout: () => void
-  isLoading: boolean
-}
 
 // Interface para dados de registro
 export interface RegisterData {
@@ -175,7 +167,6 @@ export interface RegisterData {
   email: string
   password: string
   confirmPassword: string
-  userType: UserType
 }
 
 // Interface para dados de login
